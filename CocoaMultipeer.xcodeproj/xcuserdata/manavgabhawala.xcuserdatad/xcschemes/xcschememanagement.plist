@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>SchemeUserState</key>
+	<dict>
+		<key>MultipeerCocoaMac.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+		<key>MultipeerCocoaWatchOS.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+		<key>MultipeerCocoaiOS.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>0</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>82CB0ED21B3B42C70092AFEB</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>82CB0EDC1B3B42C70092AFEB</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>82CB0EEF1B3B42F50092AFEB</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>82CB0EF81B3B42F50092AFEB</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>82CB0F0B1B3B43200092AFEB</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+	</dict>
+</dict>
+</plist>
