@@ -1,0 +1,2 @@
+# CocoaMultipeer
+This repository is a peer to peer framework for OS X, iOS and watchOS 2 that presents a similar interface to the MultipeerConnectivity framework (which is iOS only) that lets you connect any 2 devices from any platform. This framework works with peer to peer networks like bluetooth and ad hoc wifi networks when available it also falls back onto using a wifi router when necessary. It is built on top of CFNetwork and NSNetService
