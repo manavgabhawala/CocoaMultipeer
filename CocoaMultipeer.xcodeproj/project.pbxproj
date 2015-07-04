@@ -7,12 +7,36 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		824854A11B485F6D00B12925 /* MGPeerID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854A01B485F6D00B12925 /* MGPeerID.swift */; };
+		824854A21B485F6D00B12925 /* MGPeerID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854A01B485F6D00B12925 /* MGPeerID.swift */; };
+		824854A31B485F6D00B12925 /* MGPeerID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854A01B485F6D00B12925 /* MGPeerID.swift */; };
+		824854A51B48636C00B12925 /* MGSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854A41B48636C00B12925 /* MGSession.swift */; };
+		824854A61B48636C00B12925 /* MGSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854A41B48636C00B12925 /* MGSession.swift */; };
+		824854A71B48636C00B12925 /* MGSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854A41B48636C00B12925 /* MGSession.swift */; };
+		824854A91B48662A00B12925 /* MGNearbyServiceBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854A81B48662A00B12925 /* MGNearbyServiceBrowser.swift */; };
+		824854AA1B48662A00B12925 /* MGNearbyServiceBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854A81B48662A00B12925 /* MGNearbyServiceBrowser.swift */; };
+		824854AB1B48662A00B12925 /* MGNearbyServiceBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854A81B48662A00B12925 /* MGNearbyServiceBrowser.swift */; };
+		824854AF1B48704D00B12925 /* MGBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854AE1B48704D00B12925 /* MGBrowserViewController.swift */; };
+		824854B11B48707700B12925 /* MGBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854B01B48707700B12925 /* MGBrowserViewController.swift */; };
+		824854B31B4870A600B12925 /* MGBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854B21B4870A600B12925 /* MGBrowserViewController.swift */; };
+		8283C8501B48741E0085868E /* CocoaMultipeerStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8283C84F1B48741E0085868E /* CocoaMultipeerStoryboard.storyboard */; };
+		8283C8521B48806B0085868E /* Generics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8283C8511B48806B0085868E /* Generics.swift */; };
+		8283C8531B48806B0085868E /* Generics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8283C8511B48806B0085868E /* Generics.swift */; };
+		8283C8541B48806B0085868E /* Generics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8283C8511B48806B0085868E /* Generics.swift */; };
 		82CB0ED71B3B42C70092AFEB /* MultipeerCocoaiOS.h in Headers */ = {isa = PBXBuildFile; fileRef = 82CB0ED61B3B42C70092AFEB /* MultipeerCocoaiOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		82CB0EF31B3B42F50092AFEB /* MultipeerCocoaMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 82CB0EF21B3B42F50092AFEB /* MultipeerCocoaMac.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		82CB0F0F1B3B43200092AFEB /* MultipeerCocoaWatchOS.h in Headers */ = {isa = PBXBuildFile; fileRef = 82CB0F0E1B3B43200092AFEB /* MultipeerCocoaWatchOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		824854A01B485F6D00B12925 /* MGPeerID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGPeerID.swift; sourceTree = "<group>"; };
+		824854A41B48636C00B12925 /* MGSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGSession.swift; sourceTree = "<group>"; };
+		824854A81B48662A00B12925 /* MGNearbyServiceBrowser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGNearbyServiceBrowser.swift; sourceTree = "<group>"; };
+		824854AE1B48704D00B12925 /* MGBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGBrowserViewController.swift; sourceTree = "<group>"; };
+		824854B01B48707700B12925 /* MGBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGBrowserViewController.swift; sourceTree = "<group>"; };
+		824854B21B4870A600B12925 /* MGBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGBrowserViewController.swift; sourceTree = "<group>"; };
+		8283C84F1B48741E0085868E /* CocoaMultipeerStoryboard.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = CocoaMultipeerStoryboard.storyboard; sourceTree = "<group>"; };
+		8283C8511B48806B0085868E /* Generics.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Generics.swift; sourceTree = "<group>"; };
 		82CB0ECC1B3B40AE0092AFEB /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		82CB0ECD1B3B40AE0092AFEB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		82CB0ED31B3B42C70092AFEB /* MultipeerCocoaiOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MultipeerCocoaiOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -79,6 +103,8 @@
 			children = (
 				82CB0ED61B3B42C70092AFEB /* MultipeerCocoaiOS.h */,
 				82CB0ED81B3B42C70092AFEB /* Info.plist */,
+				824854AE1B48704D00B12925 /* MGBrowserViewController.swift */,
+				8283C84F1B48741E0085868E /* CocoaMultipeerStoryboard.storyboard */,
 			);
 			path = MultipeerCocoaiOS;
 			sourceTree = "<group>";
@@ -88,6 +114,7 @@
 			children = (
 				82CB0EF21B3B42F50092AFEB /* MultipeerCocoaMac.h */,
 				82CB0EF41B3B42F50092AFEB /* Info.plist */,
+				824854B01B48707700B12925 /* MGBrowserViewController.swift */,
 			);
 			path = MultipeerCocoaMac;
 			sourceTree = "<group>";
@@ -97,6 +124,7 @@
 			children = (
 				82CB0F0E1B3B43200092AFEB /* MultipeerCocoaWatchOS.h */,
 				82CB0F101B3B43200092AFEB /* Info.plist */,
+				824854B21B4870A600B12925 /* MGBrowserViewController.swift */,
 			);
 			path = MultipeerCocoaWatchOS;
 			sourceTree = "<group>";
@@ -104,6 +132,10 @@
 		82CB0F141B3B43420092AFEB /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				8283C8511B48806B0085868E /* Generics.swift */,
+				824854A01B485F6D00B12925 /* MGPeerID.swift */,
+				824854A81B48662A00B12925 /* MGNearbyServiceBrowser.swift */,
+				824854A41B48636C00B12925 /* MGSession.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -198,6 +230,7 @@
 		82CB0EC61B3B40910092AFEB /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 0700;
 				LastUpgradeCheck = 0700;
 				TargetAttributes = {
 					82CB0ED21B3B42C70092AFEB = {
@@ -235,6 +268,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8283C8501B48741E0085868E /* CocoaMultipeerStoryboard.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -259,6 +293,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				824854A51B48636C00B12925 /* MGSession.swift in Sources */,
+				824854A91B48662A00B12925 /* MGNearbyServiceBrowser.swift in Sources */,
+				8283C8521B48806B0085868E /* Generics.swift in Sources */,
+				824854A11B485F6D00B12925 /* MGPeerID.swift in Sources */,
+				824854AF1B48704D00B12925 /* MGBrowserViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -266,6 +305,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				824854A61B48636C00B12925 /* MGSession.swift in Sources */,
+				824854AA1B48662A00B12925 /* MGNearbyServiceBrowser.swift in Sources */,
+				8283C8531B48806B0085868E /* Generics.swift in Sources */,
+				824854A21B485F6D00B12925 /* MGPeerID.swift in Sources */,
+				824854B11B48707700B12925 /* MGBrowserViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -273,6 +317,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				824854A71B48636C00B12925 /* MGSession.swift in Sources */,
+				824854AB1B48662A00B12925 /* MGNearbyServiceBrowser.swift in Sources */,
+				8283C8541B48806B0085868E /* Generics.swift in Sources */,
+				824854A31B485F6D00B12925 /* MGPeerID.swift in Sources */,
+				824854B31B4870A600B12925 /* MGBrowserViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -636,6 +685,7 @@
 				82CB0EE71B3B42C70092AFEB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		82CB0F011B3B42F50092AFEB /* Build configuration list for PBXNativeTarget "MultipeerCocoaMac" */ = {
 			isa = XCConfigurationList;
@@ -644,6 +694,7 @@
 				82CB0F031B3B42F50092AFEB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		82CB0F111B3B43200092AFEB /* Build configuration list for PBXNativeTarget "MultipeerCocoaWatchOS" */ = {
 			isa = XCConfigurationList;
@@ -652,6 +703,7 @@
 				82CB0F131B3B43200092AFEB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

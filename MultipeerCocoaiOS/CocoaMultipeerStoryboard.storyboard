@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="8121.20" systemVersion="15A204h" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="8101.16"/>
+    </dependencies>
+    <scenes>
+        <!--Browser View Controller-->
+        <scene sceneID="UPL-Po-8TQ">
+            <objects>
+                <viewController storyboardIdentifier="browser" useStoryboardIdentifierAsRestorationIdentifier="YES" id="xP1-IM-ZhM" customClass="MGBrowserViewController" customModule="MultipeerCocoaMac" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="rYJ-0X-8hJ"/>
+                        <viewControllerLayoutGuide type="bottom" id="bjI-MD-jCT"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="x0V-Qg-b6m">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <animations/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="lnw-ma-vX0">
+                        <barButtonItem key="leftBarButtonItem" systemItem="cancel" id="gfu-Fp-pC3"/>
+                        <barButtonItem key="rightBarButtonItem" style="done" systemItem="done" id="tAT-bq-NEx"/>
+                    </navigationItem>
+                    <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="qhT-IB-LUZ" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="490" y="334"/>
+        </scene>
+    </scenes>
+</document>
