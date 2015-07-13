@@ -16,15 +16,16 @@ Here's a list of differences between this framework and Apple's framework. In ge
 
 ### What we have?
 
--[x] Supports all platforms.
--[x] Single interface for client and server so no need to ask the user to choose whether they want to be the host or the client. In general, the way the framework works is everyone is a host and a client. If the device accepts a connection, it stops being a host and becomes a client.
--[x] Easy to setup and use quickly.
+- [x] Supports all platforms.
+- [x] Single interface for client and server so no need to ask the user to choose whether they want to be the host or the client. In general, the way the framework works is everyone is a host and a client. If the device accepts a connection, it stops being a host and becomes a client.
+- [x] Easy to setup and use quickly.
 
 ### What we don't have? 
--[] No direct file transferring capability.
--[] No encryption support in this framework
--[] No Reliable and Unreliable modes
--[] No custom browsing logic using C CoreFoundation APIs.
+
+- [ ] No direct file transferring capability.
+- [ ] No encryption support in this framework
+- [ ] No Reliable and Unreliable modes
+- [ ] No custom browsing logic using C CoreFoundation APIs.
 
 P.S. Hopefully I can add support for these features in the near future.
 
