@@ -9,7 +9,7 @@
 import Foundation
 
 ///  Error codes found in MultipeerErrorDomain error domain NSError objects returned by methods in the Multipeer Connectivity framework.
-@objc public enum MultipeerError : Int, ErrorType
+public enum MultipeerError : Int, ErrorType
 {
     /// The peer sent wasn't recognized or found.
 	case PeerNotFound
