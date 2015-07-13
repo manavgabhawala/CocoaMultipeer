@@ -13,11 +13,6 @@ The usual. Download the frameworks and drag and drop. Adding cocoa pods support 
 
 Note this framework is still under development and is not complete yet. Here's a list of completed features and expected soon features:
 
-
-## Comparison To Apple's MultipeerConnectivity framework
-
-Here's a list of differences between this framework and Apple's framework. In general I tried to make it as easy as posisble to port code using Apple's framework to this one. For the most part everything else is similar to Apple's framework and has similar features.
-
 - [x] Session, Peer and Browser objects to interact with the API as expected.
 - [x] Properties on the above objects to allow for introspection and customization.
 - [x] Header docs for all public methods and variables that you should be interacting with.
@@ -30,7 +25,11 @@ Here's a list of differences between this framework and Apple's framework. In ge
 - [ ] Mac OS X Browser and Advertieser UI which handles everything from accepting invitations to showing available connections.
 - [ ] watchOS 2 Browser and Advertiser UI which handles everything from accepting invitations to showing available connections.
 - [ ] Example of how to use the frameworks
+- [ ] Test cases
 
+## Comparison To Apple's MultipeerConnectivity framework
+
+Here's a list of differences between this framework and Apple's framework. In general I tried to make it as easy as posisble to port code using Apple's framework to this one. For the most part everything else is similar to Apple's framework and has similar features.
 
 ### What we have?
 
