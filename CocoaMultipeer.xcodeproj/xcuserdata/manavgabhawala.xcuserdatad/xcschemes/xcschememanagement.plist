@@ -19,9 +19,24 @@
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
+		<key>iOS.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
+		<key>823F3E961B53F0DC00A7B7F1</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>823F3EBC1B53F13500A7B7F1</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>82CB0ED21B3B42C70092AFEB</key>
 		<dict>
 			<key>primary</key>

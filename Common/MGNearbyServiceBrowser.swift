@@ -192,6 +192,7 @@ extension MGNearbyServiceBrowser : NSNetServiceDelegate
 	{
 		assert(sender === server)
 		myPeerID.name = sender.name
+		browser.stop()
 		browser.searchForServicesOfType(fullServiceType, inDomain: "")
 		delegate?.browserDidStartSuccessfully?(self)
 	}

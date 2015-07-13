@@ -35,6 +35,7 @@ import UIKit
 		self.browser = browser
 		self.session = session
 		super.init(nibName: nil, bundle: nil)
+		self.browser.delegate = self
 	}
 	required public init?(coder aDecoder: NSCoder)
 	{
@@ -43,31 +44,33 @@ import UIKit
 		self.browser = MGNearbyServiceBrowser(peer: peer, discoveryInfo: nil, serviceType: "custom-server")
 		self.session = MGSession(peer: peer)
 		super.init(coder: aDecoder)
+		self.browser.delegate = self
 	}
 	public override func loadView()
 	{
 		super.loadView()
 		tableView.frame = view.frame
-		let topConstraint = NSLayoutConstraint(item: tableView, attribute: .Top, relatedBy: .Equal, toItem: topLayoutGuide, attribute: .Top, multiplier: 1.0, constant: 0.0)
-		let bottomConstraint = NSLayoutConstraint(item: tableView, attribute: .Bottom, relatedBy: .Equal, toItem: bottomLayoutGuide, attribute: .Bottom, multiplier: 1.0, constant: 0.0)
-		let rightConstraint = NSLayoutConstraint(item: tableView, attribute: .Right, relatedBy: .Equal, toItem: view, attribute: .Right, multiplier: 1.0, constant: -16.0)
-		let leftConstraint = NSLayoutConstraint(item: tableView, attribute: .Left, relatedBy: .Equal,
-			toItem: view, attribute: .Left, multiplier: 1.0, constant: -16.0)
-		tableView.addConstraint(topConstraint)
-		tableView.addConstraint(bottomConstraint)
-		tableView.addConstraint(rightConstraint)
-		tableView.addConstraint(leftConstraint)
-		navigationItem.title = nil
+		tableView.delegate = self
+		tableView.dataSource = self
+		navigationController?.navigationItem.title = ""
+		navigationItem.title = ""
 		navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Done, target: self, action: "donePressed:")
 		navigationItem.rightBarButtonItem?.enabled = false
 		navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Cancel, target: self, action: "cancelPressed:")
 		view.addSubview(tableView)
 	}
-
+	public override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator)
+	{
+		tableView.frame.size = size
+		
+	}
+	
 	public override func viewDidAppear(animated: Bool)
 	{
 		super.viewDidAppear(animated)
+		browser.startBrowsingForPeers()
 		NSNotificationCenter.defaultCenter().addObserver(self, selector: "sessionUpdated:", name: MGSession.sessionPeerStateUpdatedNotification, object: session)
+		tableView.reloadData()
 	}
 	public override func viewDidDisappear(animated: Bool)
 	{
@@ -82,7 +85,7 @@ import UIKit
 		{
 			return
 		}
-		tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: .Automatic)
+		tableView.reloadData()
 	}
 	
 	// MARK: - Actions
@@ -158,16 +161,24 @@ extension MGBrowserViewController : UITableViewDelegate, UITableViewDataSource
 	{
 		return section == 0 ? "Connected Peers" : "Available Peers"
 	}
-
 	public func tableView(tableView: UITableView, titleForFooterInSection section: Int) -> String?
 	{
-		return section == 0 ? nil : "You must connect to at least \(minimumPeers) peers and no more than \(maximumPeers) peers."
+		return section == 0 ? nil : "This device will appear as \(browser.myPeerID.displayName). You must connect to at least \(minimumPeers) peers and no more than \(maximumPeers) peers."
 	}
 	
 }
 // MARK: - Browser stuff
 extension MGBrowserViewController : MGNearbyServiceBrowserDelegate
 {
+	public func browserDidStartSuccessfully(browser: MGNearbyServiceBrowser)
+	{
+		tableView.reloadSections(NSIndexSet(index: 1), withRowAnimation: .Automatic)
+	}
+	public func browser(browser: MGNearbyServiceBrowser, didNotStartBrowsingForPeers error: [String : NSNumber])
+	{
+		print(error)
+		assertionFailure()
+	}
 	public func browser(browser: MGNearbyServiceBrowser, foundPeer peerID: MGPeerID, withDiscoveryInfo info: [String : String]?)
 	{
 		assert(browser === self.browser)

@@ -26,7 +26,7 @@ import Foundation
 	/// - Parameter displayName: The display name for the local peer. If you use the multipeer browser view controller, this name is shown.
 	/// The display name is intended for use in UI elements, and should be short and descriptive of the local peer. The maximum allowable length is 63 bytes in UTF-8 encoding. The displayName parameter may be nil, if it is nil the framework will assign a name for you based on the device's name set by the user. Until the name is assgined the name returned by the `displayName` paramter will be an empty String.
 	/// - Returns: Returns an initialized object.
-	@objc public init(displayName: String?)
+	@objc public init(displayName: String? = nil)
 	{
 		name = displayName
 	}
