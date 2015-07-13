@@ -10,6 +10,24 @@ With Apple introducing features like continuity and handoff, being able to strea
 The usual. Download the frameworks and drag and drop. Adding cocoa pods support soon.
 
 
+## Comparison To Apple's MultipeerConnectivity framework
+
+Here's a list of differences between this framework and Apple's framework. In general I tried to make it as easy as posisble to port code using Apple's framework to this one.
+
+### What we have?
+
+-[x] Supports all platforms.
+-[x] Single interface for client and server so no need to ask the user to choose whether they want to be the host or the client. In general, the way the framework works is everyone is a host and a client. If the device accepts a connection, it stops being a host and becomes a client.
+-[x] Easy to setup and use quickly.
+
+### What we don't have? 
+-[] No direct file transferring capability.
+-[] No encryption support in this framework
+-[] No Reliable and Unreliable modes
+-[] No custom browsing logic using C CoreFoundation APIs.
+
+P.S. Hopefully I can add support for these features in the near future.
+
 ## How To Use - API
 Coming soon but it will be well documented.
 

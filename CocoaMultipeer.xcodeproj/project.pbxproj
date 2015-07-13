@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		823F3E8C1B53B6A000A7B7F1 /* MultipeerError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 823F3E8B1B53B6A000A7B7F1 /* MultipeerError.swift */; };
+		823F3E8D1B53B6A000A7B7F1 /* MultipeerError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 823F3E8B1B53B6A000A7B7F1 /* MultipeerError.swift */; };
+		823F3E8E1B53B6A000A7B7F1 /* MultipeerError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 823F3E8B1B53B6A000A7B7F1 /* MultipeerError.swift */; };
+		823F3E901B53D0E600A7B7F1 /* MGSessionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 823F3E8F1B53D0E600A7B7F1 /* MGSessionState.swift */; };
+		823F3E911B53D0E600A7B7F1 /* MGSessionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 823F3E8F1B53D0E600A7B7F1 /* MGSessionState.swift */; };
+		823F3E921B53D0E600A7B7F1 /* MGSessionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 823F3E8F1B53D0E600A7B7F1 /* MGSessionState.swift */; };
 		824854A11B485F6D00B12925 /* MGPeerID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854A01B485F6D00B12925 /* MGPeerID.swift */; };
 		824854A21B485F6D00B12925 /* MGPeerID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854A01B485F6D00B12925 /* MGPeerID.swift */; };
 		824854A31B485F6D00B12925 /* MGPeerID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854A01B485F6D00B12925 /* MGPeerID.swift */; };
@@ -19,7 +25,6 @@
 		824854AF1B48704D00B12925 /* MGBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854AE1B48704D00B12925 /* MGBrowserViewController.swift */; };
 		824854B11B48707700B12925 /* MGBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854B01B48707700B12925 /* MGBrowserViewController.swift */; };
 		824854B31B4870A600B12925 /* MGBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824854B21B4870A600B12925 /* MGBrowserViewController.swift */; };
-		8283C8501B48741E0085868E /* CocoaMultipeerStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8283C84F1B48741E0085868E /* CocoaMultipeerStoryboard.storyboard */; };
 		8283C8521B48806B0085868E /* Generics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8283C8511B48806B0085868E /* Generics.swift */; };
 		8283C8531B48806B0085868E /* Generics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8283C8511B48806B0085868E /* Generics.swift */; };
 		8283C8541B48806B0085868E /* Generics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8283C8511B48806B0085868E /* Generics.swift */; };
@@ -29,13 +34,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		823F3E8B1B53B6A000A7B7F1 /* MultipeerError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultipeerError.swift; sourceTree = "<group>"; };
+		823F3E8F1B53D0E600A7B7F1 /* MGSessionState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGSessionState.swift; sourceTree = "<group>"; };
 		824854A01B485F6D00B12925 /* MGPeerID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGPeerID.swift; sourceTree = "<group>"; };
 		824854A41B48636C00B12925 /* MGSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGSession.swift; sourceTree = "<group>"; };
 		824854A81B48662A00B12925 /* MGNearbyServiceBrowser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGNearbyServiceBrowser.swift; sourceTree = "<group>"; };
 		824854AE1B48704D00B12925 /* MGBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGBrowserViewController.swift; sourceTree = "<group>"; };
 		824854B01B48707700B12925 /* MGBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGBrowserViewController.swift; sourceTree = "<group>"; };
 		824854B21B4870A600B12925 /* MGBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGBrowserViewController.swift; sourceTree = "<group>"; };
-		8283C84F1B48741E0085868E /* CocoaMultipeerStoryboard.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = CocoaMultipeerStoryboard.storyboard; sourceTree = "<group>"; };
 		8283C8511B48806B0085868E /* Generics.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Generics.swift; sourceTree = "<group>"; };
 		82CB0ECC1B3B40AE0092AFEB /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		82CB0ECD1B3B40AE0092AFEB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -104,7 +110,6 @@
 				82CB0ED61B3B42C70092AFEB /* MultipeerCocoaiOS.h */,
 				82CB0ED81B3B42C70092AFEB /* Info.plist */,
 				824854AE1B48704D00B12925 /* MGBrowserViewController.swift */,
-				8283C84F1B48741E0085868E /* CocoaMultipeerStoryboard.storyboard */,
 			);
 			path = MultipeerCocoaiOS;
 			sourceTree = "<group>";
@@ -135,7 +140,9 @@
 				8283C8511B48806B0085868E /* Generics.swift */,
 				824854A01B485F6D00B12925 /* MGPeerID.swift */,
 				824854A81B48662A00B12925 /* MGNearbyServiceBrowser.swift */,
+				823F3E8B1B53B6A000A7B7F1 /* MultipeerError.swift */,
 				824854A41B48636C00B12925 /* MGSession.swift */,
+				823F3E8F1B53D0E600A7B7F1 /* MGSessionState.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -268,7 +275,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8283C8501B48741E0085868E /* CocoaMultipeerStoryboard.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -293,10 +299,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				823F3E901B53D0E600A7B7F1 /* MGSessionState.swift in Sources */,
 				824854A51B48636C00B12925 /* MGSession.swift in Sources */,
 				824854A91B48662A00B12925 /* MGNearbyServiceBrowser.swift in Sources */,
 				8283C8521B48806B0085868E /* Generics.swift in Sources */,
 				824854A11B485F6D00B12925 /* MGPeerID.swift in Sources */,
+				823F3E8C1B53B6A000A7B7F1 /* MultipeerError.swift in Sources */,
 				824854AF1B48704D00B12925 /* MGBrowserViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -305,10 +313,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				823F3E911B53D0E600A7B7F1 /* MGSessionState.swift in Sources */,
 				824854A61B48636C00B12925 /* MGSession.swift in Sources */,
 				824854AA1B48662A00B12925 /* MGNearbyServiceBrowser.swift in Sources */,
 				8283C8531B48806B0085868E /* Generics.swift in Sources */,
 				824854A21B485F6D00B12925 /* MGPeerID.swift in Sources */,
+				823F3E8D1B53B6A000A7B7F1 /* MultipeerError.swift in Sources */,
 				824854B11B48707700B12925 /* MGBrowserViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -317,10 +327,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				823F3E921B53D0E600A7B7F1 /* MGSessionState.swift in Sources */,
 				824854A71B48636C00B12925 /* MGSession.swift in Sources */,
 				824854AB1B48662A00B12925 /* MGNearbyServiceBrowser.swift in Sources */,
 				8283C8541B48806B0085868E /* Generics.swift in Sources */,
 				824854A31B485F6D00B12925 /* MGPeerID.swift in Sources */,
+				823F3E8E1B53B6A000A7B7F1 /* MultipeerError.swift in Sources */,
 				824854B31B4870A600B12925 /* MGBrowserViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

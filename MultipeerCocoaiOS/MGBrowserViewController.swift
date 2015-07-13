@@ -16,7 +16,6 @@ import UIKit
 	public let browser: MGNearbyServiceBrowser
 	public let session: MGSession
 	
-	private var connectedPeers = [MGPeerID]()
 	private var availablePeers = [MGPeerID]()
 	
 	/// Initializes a browser view controller with the provided browser and session.
@@ -30,9 +29,8 @@ import UIKit
 		self.browser = browser
 		self.session = session
 		super.init(nibName: nil, bundle: nil)
-	
 	}
-	required public init(coder aDecoder: NSCoder)
+	required public init?(coder aDecoder: NSCoder)
 	{
 		tableView = UITableView()
 		let peer = MGPeerID(displayName: nil)
@@ -78,34 +76,51 @@ extension MGBrowserViewController : UITableViewDelegate, UITableViewDataSource
 	}
 	public func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int
 	{
-		return section == 0 ? connectedPeers.count : availablePeers.count
+		return section == 0 ? session.connectedPeers.count : availablePeers.count
 	}
 	
 	public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell
 	{
-		let cell = UITableViewCell(style: UITableViewCellStyle.Default, reuseIdentifier: "cell")
-		//TODO: Setup cell here
+		let cell : UITableViewCell
+		// TODO: Setup cell here
+		if indexPath.section == 0
+		{
+			cell = UITableViewCell(style: UITableViewCellStyle.Value1, reuseIdentifier: "connected")
+			cell.textLabel!.text = session.connectedPeers[indexPath.row].displayName
+			do
+			{
+				cell.detailTextLabel!.text = try session.stateForPeer(session.connectedPeers[indexPath.row]).description
+			}
+			catch
+			{
+				print(error)
+			}
+			cell.selectionStyle = .None
+		}
+		else
+		{
+			cell = UITableViewCell(style: UITableViewCellStyle.Default, reuseIdentifier: "available")
+			cell.textLabel!.text = availablePeers[indexPath.row].displayName
+			cell.selectionStyle = .Default
+		}
 		return cell
 	}
 	public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath)
 	{
-		tableView.cellForRowAtIndexPath(indexPath)!.highlighted = false
-		if indexPath.section == 1
-		{
-			// TODO: Connect to selected peer.
-		}
+		tableView.cellForRowAtIndexPath(indexPath)!.setHighlighted(false, animated: true)
+		guard indexPath.section == 1
 		else
 		{
-			let peer = connectedPeers[indexPath.row]
-			let alertController = UIAlertController(title: "Disconnect From \(peer.displayName)", message: "Are you sure you want to disconnect from \(peer.displayName)", preferredStyle: .ActionSheet)
-			alertController.addAction(UIAlertAction(title: "Cancel", style: .Cancel, handler: nil))
-			alertController.addAction(UIAlertAction(title: "Disconnect", style: .Destructive, handler: { action in
-				self.connectedPeers.removeElement(peer)
-				self.session.cancelConnectPeer(peer)
-				self.tableView.reloadSections(NSIndexSet(indexesInRange: NSRange(location: 0, length: 2)), withRowAnimation: .Automatic)
-			}))
+			return
 		}
-		
+		do
+		{
+			try browser.invitePeer(availablePeers[indexPath.row], toSession: session)
+		}
+		catch
+		{
+			print(error)
+		}
 	}
 	public func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String?
 	{
@@ -119,25 +134,33 @@ extension MGBrowserViewController : MGNearbyServiceBrowserDelegate
 	public func browser(browser: MGNearbyServiceBrowser, foundPeer peerID: MGPeerID, withDiscoveryInfo info: [String : String]?)
 	{
 		assert(browser === self.browser)
-		guard peerID != session.localPeer && peerID != browser.myPeerID
-		else { return }
+		guard peerID != session.myPeerID && peerID != browser.myPeerID
+		else { return } // This should never happen but its better to check
 		availablePeers.append(peerID)
 		tableView.reloadSections(NSIndexSet(index: 1), withRowAnimation: .Automatic)
 	}
 	public func browser(browser: MGNearbyServiceBrowser, lostPeer peerID: MGPeerID)
 	{
 		assert(browser === self.browser)
-		guard peerID != session.localPeer && peerID != browser.myPeerID
+		guard peerID != session.myPeerID && peerID != browser.myPeerID
 		else
 		{
-			assertionFailure("We lost the browser to our own peer. Something went wrong in the browser.")
-			return
+			fatalError("We lost the browser to our own peer. Something went wrong in the browser.")
 		}
 		availablePeers.removeElement(peerID)
 		tableView.reloadSections(NSIndexSet(index: 1), withRowAnimation: .Automatic)
 	}
-	public func browser(browser: MGNearbyServiceBrowser, didReceiveInvitationFromPeer peerID: MGPeerID, withContext context: NSData?, invitationHandler: (Bool, MGSession) -> Void)
+	public func browser(browser: MGNearbyServiceBrowser, didReceiveInvitationFromPeer peerID: MGPeerID, invitationHandler: (Bool, MGSession) -> Void)
 	{
-		// TODO: Impelment
+		let alertController = UIAlertController(title: "\(peerID.displayName) wants to connect?", message: nil, preferredStyle: .Alert)
+		alertController.addAction(UIAlertAction(title: "Accept", style: UIAlertActionStyle.Default, handler: {action in
+			invitationHandler(true, self.session)
+			// Remove self since we accepted the connection.
+			self.dismissViewControllerAnimated(true, completion: nil)
+		}))
+		alertController.addAction(UIAlertAction(title: "Decline", style: .Destructive, handler: { action  in
+			invitationHandler(false, self.session)
+		}))
+		presentViewController(alertController, animated: true, completion: nil)
 	}
 }

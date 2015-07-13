@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension Array where T : Equatable
+extension Array where Element : Equatable
 {
 	mutating func removeElement(element: Generator.Element)
 	{
@@ -27,5 +27,28 @@ extension Array where T : Equatable
 			return
 		}
 		self.removeAtIndex(index)
+	}
+}
+extension NSNetService
+{
+	class func dictionaryWithTXTData(data: NSData?) -> [String: String]?
+	{
+		guard let data = data
+		else
+		{
+			return nil
+		}
+		let TXT = NSNetService.dictionaryFromTXTRecordData(data)
+		var dict = [String: String]()
+		for (key, value) in TXT
+		{
+			guard let str = NSString(data: value, encoding: NSUTF8StringEncoding) as? String
+			else
+			{
+				continue
+			}
+			dict[key] = str
+		}
+		return dict
 	}
 }

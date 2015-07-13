@@ -13,8 +13,9 @@ import Foundation
 ///  To create a new peer ID for the local app and associate a display name with that ID, call initWithDisplayName:. The peer’s name must be no longer than 63 bytes in UTF-8 encoding.
 @objc public class MGPeerID
 {
-	var name: String?
-	/// The display name for this peer. (read-only). If you passed nil into the initalizer this will be an empty string until the framework sets everything up and assigns a name to the Peer.
+	internal var name: String?
+	
+	/// The display name for this peer. (read-only). If you passed nil into the initalizer this will be an empty string until the framework sets everything up and assigns a name to the Peer. In order to track this property try accessing it after 
 	/// For other peer objects provided to you by the framework, this property is provided by the peer and cannot be changed.
 	@objc public var displayName: String
 	{
@@ -33,6 +34,10 @@ import Foundation
 
 extension MGPeerID : Equatable
 { }
+extension MGPeerID : Hashable
+{
+	public var hashValue: Int { return displayName.hashValue }
+}
 public func ==(lhs: MGPeerID, rhs: MGPeerID) -> Bool
 {
 	return lhs.name == rhs.name
