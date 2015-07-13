@@ -7,7 +7,7 @@
 //
 
 import UIKit
-
+/// The MGBrowserViewController class presents nearby devices to the user and enables the user to invite nearby devices to a session. To use this class, call methods from the underlying UIViewController class presentViewController:animated:completion: and dismissViewControllerAnimated:completion: to present and dismiss the view controller.
 @objc public class MGBrowserViewController: UIViewController
 {
 	/// Initializes a browser view controller with the provided browser and session.
@@ -15,6 +15,12 @@ import UIKit
 	private let tableView : UITableView
 	public let browser: MGNearbyServiceBrowser
 	public let session: MGSession
+	
+	/// The maximum number of peers allowed in a session, including the local peer. The default value is the `maximumAllowedPeers` value from `MGSession`
+	public var maximumPeers = MGSession.maximumAllowedPeers
+	
+	/// The minimum number of peers that need to be in a session, including the local peer. The default value is the `minimumAllowedPeers` value from `MGSession`
+	public var minimumPeers = MGSession.minimumAllowedPeers
 	
 	private var availablePeers = [MGPeerID]()
 	
@@ -53,18 +59,46 @@ import UIKit
 		tableView.addConstraint(leftConstraint)
 		navigationItem.title = nil
 		navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Done, target: self, action: "donePressed:")
+		navigationItem.rightBarButtonItem?.enabled = false
 		navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Cancel, target: self, action: "cancelPressed:")
 		view.addSubview(tableView)
+	}
+
+	public override func viewDidAppear(animated: Bool)
+	{
+		super.viewDidAppear(animated)
+		NSNotificationCenter.defaultCenter().addObserver(self, selector: "sessionUpdated:", name: MGSession.sessionPeerStateUpdatedNotification, object: session)
+	}
+	public override func viewDidDisappear(animated: Bool)
+	{
+		super.viewDidDisappear(animated)
+		NSNotificationCenter.defaultCenter().removeObserver(self, name: MGSession.sessionPeerStateUpdatedNotification, object: session)
+		browser.stopBrowsingForPeers()
+	}
+	internal func sessionUpdated(notification: NSNotification)
+	{
+		guard notification.name == MGSession.sessionPeerStateUpdatedNotification
+		else
+		{
+			return
+		}
+		tableView.reloadSections(NSIndexSet(index: 0), withRowAnimation: .Automatic)
 	}
 	
 	// MARK: - Actions
 	func donePressed(sender: UIBarButtonItem)
 	{
-		
+		guard session.connectedPeers.count >= minimumPeers && session.connectedPeers.count <= maximumPeers
+		else
+		{
+			return
+		}
+		dismissViewControllerAnimated(true, completion: nil)
 	}
 	func cancelPressed(sender: UIBarButtonItem)
 	{
-		
+		session.disconnect()
+		dismissViewControllerAnimated(true, completion: nil)
 	}
 }
 //MARK: - TableViewStuff
@@ -108,14 +142,12 @@ extension MGBrowserViewController : UITableViewDelegate, UITableViewDataSource
 	public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath)
 	{
 		tableView.cellForRowAtIndexPath(indexPath)!.setHighlighted(false, animated: true)
-		guard indexPath.section == 1
-		else
-		{
-			return
-		}
+		guard indexPath.section == 1 && maximumPeers > session.connectedPeers.count
+		else { return }
 		do
 		{
 			try browser.invitePeer(availablePeers[indexPath.row], toSession: session)
+			tableView.reloadSections(NSIndexSet(indexesInRange: NSRange(location: 0, length: 2)), withRowAnimation: .Automatic)
 		}
 		catch
 		{
@@ -125,6 +157,11 @@ extension MGBrowserViewController : UITableViewDelegate, UITableViewDataSource
 	public func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String?
 	{
 		return section == 0 ? "Connected Peers" : "Available Peers"
+	}
+
+	public func tableView(tableView: UITableView, titleForFooterInSection section: Int) -> String?
+	{
+		return section == 0 ? nil : "You must connect to at least \(minimumPeers) peers and no more than \(maximumPeers) peers."
 	}
 	
 }
@@ -152,6 +189,13 @@ extension MGBrowserViewController : MGNearbyServiceBrowserDelegate
 	}
 	public func browser(browser: MGNearbyServiceBrowser, didReceiveInvitationFromPeer peerID: MGPeerID, invitationHandler: (Bool, MGSession) -> Void)
 	{
+		guard session.connectedPeers.count == 0
+		else
+		{
+			// We are already connected to some peers so we can't accept any other connections.
+			invitationHandler(false, session)
+			return
+		}
 		let alertController = UIAlertController(title: "\(peerID.displayName) wants to connect?", message: nil, preferredStyle: .Alert)
 		alertController.addAction(UIAlertAction(title: "Accept", style: UIAlertActionStyle.Default, handler: {action in
 			invitationHandler(true, self.session)

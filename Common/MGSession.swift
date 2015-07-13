@@ -74,6 +74,8 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 	/// The minimum number of peers that a session can support, including the local peer.
 	public static var minimumAllowedPeers = 0
 	
+	internal static let sessionPeerStateUpdatedNotification = "SessionPeerStateUpdatedNotification"
+	
 	/// A local identifier that represents the device on which your app is currently running. (read-only)
 	public let myPeerID: MGPeerID
 	
@@ -93,7 +95,7 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 	///
 	///  - Parameter peer: A local identifier that represents the device on which your app is currently running.
 	///
-	///   - Returns: Returns the initialized session object, or nil if an error occurs.
+	///  - Returns: Returns the initialized session object, or nil if an error occurs.
 	public init(peer: MGPeerID)
 	{
 		myPeerID = peer
@@ -108,7 +110,11 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 	{
 		for peer in peers.filter({ peerIDs.contains($0.peer) })
 		{
-			assert(peer.state == .Connected)
+			guard (peer.state == .Connected)
+			else
+			{
+				throw MultipeerError.NotConnected
+			}
 			// First lets setup our packets.
 			var packet = [UInt8]()
 			packet.reserveCapacity(self.packetSize)
@@ -200,18 +206,25 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 		{
 			throw MultipeerError.PeerNotFound
 		}
-		peers[index].input.close()
-		peers[index].output.close()
-		peers[index].state = .NotConnected
-		delegate?.session(self, peer: peers[index].peer, didChangeState: peers[index].state)
-		peers.removeAtIndex(index)
+		lostPeer(index)
 	}
+	
 	///  Disconnects the local peer from the session.
 	public func disconnect()
 	{
-		// TODO: Implement
+		for i in 0..<peers.count
+		{
+			lostPeer(i)
+		}
+		guard peers.count != 0
+		else
+		{
+			return
+		}
+		disconnect()
 	}
 }
+// MARK: - Stream handlers.
 extension MGSession : NSStreamDelegate
 {
 	public func stream(aStream: NSStream, handleEvent eventCode: NSStreamEvent)
@@ -243,7 +256,7 @@ extension MGSession : NSStreamDelegate
 // MARK: - Private helpers
 extension MGSession
 {
-	func streamCompletedOpening(stream: NSStream)
+	private func streamCompletedOpening(stream: NSStream)
 	{
 		for var peer in peers
 		{
@@ -254,12 +267,13 @@ extension MGSession
 			{
 				peer.state = .Connected
 				delegate?.session(self, peer: peer.peer, didChangeState: peer.state)
+				NSNotificationCenter.defaultCenter().postNotificationName(MGSession.sessionPeerStateUpdatedNotification, object: self, userInfo: nil)
 				return
 			}
 		}
 		assertionFailure("Could not find the peer whose stream was opened. Invalid state.")
 	}
-	func streamHasBytes(stream: NSStream)
+	private func streamHasBytes(stream: NSStream)
 	{
 		guard let inputStream = stream as? NSInputStream
 		else { fatalError("We expect only input streams to have bytes.") }
@@ -291,7 +305,7 @@ extension MGSession
 		}
 		assertionFailure("Could not find the peer whose stream data was read from. Invalid state.")
 	}
-	func streamHasSpace(stream: NSStream)
+	private func streamHasSpace(stream: NSStream)
 	{
 		guard let stream = stream as? NSOutputStream
 		else { fatalError("We expected only the output stream to have space") }
@@ -304,7 +318,7 @@ extension MGSession
 		}
 		assertionFailure("Could not find the peer whose stream has space available. Invalid state.")
 	}
-	func streamEncounteredEnd(stream: NSStream)
+	private func streamEncounteredEnd(stream: NSStream)
 	{
 		// Remote side died, tell the delegate that connection was lost.
 		for (i, peer) in peers.enumerate()
@@ -316,13 +330,13 @@ extension MGSession
 		}
 		assertionFailure("Could not find the peer whose stream died. Invalid state.")
 	}
-	
 	private func lostPeer(peerIndex: Int)
 	{
 		peers[peerIndex].input.close()
 		peers[peerIndex].output.close()
 		peers[peerIndex].state = .NotConnected
 		delegate?.session(self, peer: peers[peerIndex].peer, didChangeState: peers[peerIndex].state)
+		NSNotificationCenter.defaultCenter().postNotificationName(MGSession.sessionPeerStateUpdatedNotification, object: self, userInfo: nil)
 		peers.removeAtIndex(peerIndex)
 	}
 }

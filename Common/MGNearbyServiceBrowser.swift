@@ -8,7 +8,6 @@
 
 import Foundation
 
-public let multipeerErrorDomain = "MultipeerError"
 
 
 /** The MGNearbyServiceBrowserDelegate protocol defines methods that a MGNearbyServiceBrowser object’s delegate can implement to handle browser-related and invitation events.
@@ -136,6 +135,8 @@ public let multipeerErrorDomain = "MultipeerError"
 		let status = service.getInputStream(&input, outputStream: &output)
 		assert(status, "Could not create streams. This is not a network error so we fail with an assertion to trace the stack.")
 		session.connectToPeer(peerID, inputStream: input!, outputStream: output!)
+		availableServices[peerID] = nil
+		delegate?.browser(self, lostPeer: peerID)
 	}
 	
 }
