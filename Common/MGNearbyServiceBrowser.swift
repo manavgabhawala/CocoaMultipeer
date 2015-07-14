@@ -10,7 +10,7 @@ import Foundation
 
 
 
-/** The MGNearbyServiceBrowserDelegate protocol defines methods that a MGNearbyServiceBrowser object’s delegate can implement to handle browser-related and invitation events.
+/** The MGNearbyServiceBrowserDelegate protocol defines methods that a MGNearbyServiceBrowser object’s delegate can implement to handle browser-related and invitation events. Since all activity is asynchronous in nature, you cannot make any assumptions of the thread on which the delegate's methods will be called.
 */
 @objc public protocol MGNearbyServiceBrowserDelegate
 {
@@ -62,7 +62,7 @@ import Foundation
 	private let server : NSNetService
 	private let browser = NSNetServiceBrowser()
 	private let fullServiceType: String
-	private var availableServices = [MGPeerID : NSNetService]()
+	private var availableServices = [NSNetService : MGPeerID]()
 	
 	/// The service type to browse for. (read-only)
 	public let serviceType : String
@@ -107,6 +107,8 @@ import Foundation
 	*/
 	public func startBrowsingForPeers()
 	{
+		server.stop()
+		server.startMonitoring()
 		server.publishWithOptions(NSNetServiceOptions.ListenForConnections)
 	}
 	
@@ -116,6 +118,7 @@ import Foundation
 	{
 		server.stop()
 		browser.stop()
+		server.stopMonitoring()
 	}
 	
 	/// Invites a discovered peer to join a Cocoa Multipeer session.
@@ -125,7 +128,16 @@ import Foundation
 	/// - Warning: Throws a Peer Not Found error if the peer could not be found.
 	public func invitePeer(peerID: MGPeerID, toSession session: MGSession) throws
 	{
-		guard let service = availableServices[peerID]
+		var foundService : NSNetService?
+		for (key, value) in availableServices
+		{
+			if value == peerID
+			{
+				foundService = key
+				break
+			}
+		}
+		guard let service = foundService
 		else
 		{
 			throw MultipeerError.PeerNotFound
@@ -135,8 +147,7 @@ import Foundation
 		let status = service.getInputStream(&input, outputStream: &output)
 		assert(status, "Could not create streams. This is not a network error so we fail with an assertion to trace the stack.")
 		session.connectToPeer(peerID, inputStream: input!, outputStream: output!)
-		availableServices[peerID] = nil
-		delegate?.browser(self, lostPeer: peerID)
+		availableServices.removeValueForKey(service)
 	}
 	
 }
@@ -156,32 +167,41 @@ extension MGNearbyServiceBrowser : NSNetServiceBrowserDelegate
 	public func netServiceBrowser(browser: NSNetServiceBrowser, didFindService service: NSNetService, moreComing: Bool)
 	{
 		assert(browser === self.browser)
-		let peer = MGPeerID(displayName: service.name)
-		availableServices[peer] = service
-		if let discovery = NSNetService.dictionaryWithTXTData(service.TXTRecordData())
-		{
-			delegate?.browser(self, foundPeer: peer, withDiscoveryInfo: discovery)
-		}
+		guard service != server
 		else
 		{
-			delegate?.browser(self, foundPeer: peer, withDiscoveryInfo: nil)
-			service.resolveWithTimeout(5.0)
+			return
 		}
-		
+		service.delegate = self
+		service.resolveWithTimeout(10.0)
+//		guard availableServices[service] == nil
+//		else
+//		{
+//			return
+//		}
+//		let peer = MGPeerID(displayName: service.name)
+//		availableServices[service] = peer
+//		if let discovery = NSNetService.dictionaryWithTXTData(service.TXTRecordData())
+//		{
+//			delegate?.browser(self, foundPeer: peer, withDiscoveryInfo: discovery)
+//		}
+//		else
+//		{
+//			delegate?.browser(self, foundPeer: peer, withDiscoveryInfo: nil)
+//			service.resolveWithTimeout(5.0)
+//		}
 	}
 	
 	public func netServiceBrowser(browser: NSNetServiceBrowser, didRemoveService service: NSNetService, moreComing: Bool)
 	{
 		assert(browser === self.browser)
-		for (key, value) in availableServices
+		guard let peer = availableServices[service]
+		else
 		{
-			if value == service
-			{
-				delegate?.browser(self, lostPeer: key)
-				availableServices.removeValueForKey(key)
-				break
-			}
+			return
 		}
+		availableServices.removeValueForKey(service)
+		delegate?.browser(self, lostPeer: peer)
 	}
 }
 // MARK: - NSNetServiceDelegate
@@ -206,33 +226,29 @@ extension MGNearbyServiceBrowser : NSNetServiceDelegate
 	}
 	public func netServiceDidResolveAddress(sender: NSNetService)
 	{
-		for (peer, service) in availableServices
+		guard availableServices[sender] == nil
+		else
 		{
-			guard service == sender
-			else
-			{
-				continue
-			}
-			delegate?.browser?(self, didUpdatePeer: peer, withDiscoveryInfo: NSNetService.dictionaryWithTXTData(sender.TXTRecordData()))
-			break
+			return
 		}
+		let peer = MGPeerID(displayName: sender.name)
+		availableServices[sender] = peer
+		delegate?.browser(self, foundPeer: peer, withDiscoveryInfo: NSNetService.dictionaryWithTXTData(sender.TXTRecordData()))
+		//delegate?.browser?(self, didUpdatePeer: peer, withDiscoveryInfo: NSNetService.dictionaryWithTXTData(sender.TXTRecordData()))
 	}
 	public func netService(sender: NSNetService, didNotResolve errorDict: [String : NSNumber])
 	{
-		for (peer, service) in availableServices
+		guard let peer = availableServices[sender]
+		else
 		{
-			guard service == sender
-				else
-			{
-				continue
-			}
-			delegate?.browser?(self, couldNotResolvePeer: peer, withError: errorDict)
-			break
+			return
 		}
+		delegate?.browser?(self, couldNotResolvePeer: peer, withError: errorDict)
 	}
 	public func netService(sender: NSNetService, didAcceptConnectionWithInputStream inputStream: NSInputStream, outputStream: NSOutputStream)
 	{
 		let peer = MGPeerID(displayName: sender.name)
+		stopBrowsingForPeers()
 		delegate?.browser(self, didReceiveInvitationFromPeer: peer, invitationHandler: { (accept, session) in
 			if (!accept)
 			{
@@ -241,17 +257,31 @@ extension MGNearbyServiceBrowser : NSNetServiceDelegate
 				inputStream.open()
 				outputStream.close()
 				inputStream.close()
+				self.startBrowsingForPeers()
 			}
 			else
 			{
 				// Accept the connection and stop looking for more peers to connect to.
-				session.connectToPeer(peer, inputStream: inputStream, outputStream: outputStream)
 				self.stopBrowsingForPeers()
+				session.connectToPeer(peer, inputStream: inputStream, outputStream: outputStream)
 			}
 		})
 	}
+	public func netService(sender: NSNetService, didUpdateTXTRecordData data: NSData)
+	{
+		guard let peer = availableServices[sender]
+		else
+		{
+			return
+		}
+		delegate?.browser?(self, didUpdatePeer: peer, withDiscoveryInfo: NSNetService.dictionaryWithTXTData(sender.TXTRecordData()))
+	}
 }
 
+extension MGNearbyServiceBrowser
+{
+	public override var description : String { return "Browser for peer \(myPeerID). Searching for services named \(serviceType)" }
+}
 // MARK: - Private helpers
 extension MGNearbyServiceBrowser
 {

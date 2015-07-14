@@ -2,27 +2,70 @@
 //  MGBrowserViewController.swift
 //  CocoaMultipeer
 //
-//  Created by Manav Gabhawala on 05/07/15.
+//  Created by Manav Gabhawala on 14/07/15.
 //
 //
 
-import UIKit
+import Foundation
+
+
 /// The MGBrowserViewController class presents nearby devices to the user and enables the user to invite nearby devices to a session. To use this class, call methods from the underlying UIViewController class presentViewController:animated:completion: and dismissViewControllerAnimated:completion: to present and dismiss the view controller.
-@objc public class MGBrowserViewController: UIViewController
+/// #### Discussion
+/// You can create this class inside the storyboard by creating a Navigation View Controller (with no root view controller) and assiging it the `MGBrowserViewController` class. Then, the browser object will be created and managed for you but you must keep a strong reference to the session object and set its delegate to recieve events.
+@objc public class MGBrowserViewController: UINavigationController
 {
-	/// Initializes a browser view controller with the provided browser and session.
+	/// Set this to the name of the service you want when setting up using storyboards.
+	@IBInspectable public var serviceName : String = "custom-service"
 	
-	private let tableView : UITableView
+	/// The browser passed to the initializer for which this class is presenting a UI for. (read-only)
 	public let browser: MGNearbyServiceBrowser
+	
+	/// The session passed to the initializer for which this class is presenting a UI for. (read-only)
 	public let session: MGSession
 	
-	/// The maximum number of peers allowed in a session, including the local peer. The default value is the `maximumAllowedPeers` value from `MGSession`
-	public var maximumPeers = MGSession.maximumAllowedPeers
+	/// The minimum number of peers that need to be in a session, including the local peer. The default value is the `minimumAllowedPeers` value from `MGSession`. If set to more than `MGSession.maximumAllowedPeers` or less than `MGSession.minimumAllowedPeers` it will automatically be set to the maximum or minimum allowed peers respectively. If set to more than the `maximumPeers`, a fatalError will be raised.
+	@IBInspectable public var minimumPeers : Int = MGSession.minimumAllowedPeers
+		{
+		didSet
+		{
+			guard maximumPeers >= minimumPeers
+				else
+			{
+				fatalError("The maximum number of peers cannot be less than the minimum number of peers")
+			}
+			if minimumPeers > MGSession.maximumAllowedPeers
+			{
+				minimumPeers = MGSession.maximumAllowedPeers
+			}
+			if minimumPeers < MGSession.minimumAllowedPeers
+			{
+				minimumPeers = MGSession.minimumAllowedPeers
+			}
+		}
+	}
 	
-	/// The minimum number of peers that need to be in a session, including the local peer. The default value is the `minimumAllowedPeers` value from `MGSession`
-	public var minimumPeers = MGSession.minimumAllowedPeers
+	/// The maximum number of peers allowed in a session, including the local peer. The default value is the `maximumAllowedPeers` value from `MGSession`. If set to more than `MGSession.maximumAllowedPeers` or less than `MGSession.minimumAllowedPeers` it will automatically be set to the maximum or minimum allowed peers respectively. If set to less than the `minimumPeers`, a fatalError will be raised.
+	@IBInspectable public var maximumPeers : Int = MGSession.maximumAllowedPeers
+	{
+		didSet
+		{
+			guard maximumPeers >= minimumPeers
+			else
+			{
+				fatalError("The maximum number of peers cannot be less than the minimum number of peers")
+			}
+			if maximumPeers > MGSession.maximumAllowedPeers
+			{
+				maximumPeers = MGSession.maximumAllowedPeers
+			}
+			if maximumPeers < MGSession.minimumAllowedPeers
+			{
+				maximumPeers = MGSession.minimumAllowedPeers
+			}
+		}
+	}
 	
-	private var availablePeers = [MGPeerID]()
+	
 	
 	/// Initializes a browser view controller with the provided browser and session.
 	/// - Parameter browser: An object that the browser view controller uses for browsing. This is usually an instance of MGNearbyServiceBrowser. However, if your app is using a custom discovery scheme, you can instead pass any custom subclass that calls the methods defined in the MCNearbyServiceBrowserDelegate protocol on its delegate when peers are found and lost.
@@ -31,191 +74,34 @@ import UIKit
 	/// - Warning: If you want the browser view controller to manage the browsing process, the browser object must not be actively browsing, and its delegate must be nil.
 	public init(browser: MGNearbyServiceBrowser, session: MGSession)
 	{
-		tableView = UITableView(frame: CGRectZero, style: .Grouped)
 		self.browser = browser
 		self.session = session
+		serviceName = browser.serviceType
 		super.init(nibName: nil, bundle: nil)
-		self.browser.delegate = self
 	}
+	///  When initialized from a storyboard this initializer is used. This will create a peer whose name is nil and will be assigned by the framework. See `browserDidStartSuccessfully`. The name of the server is assigned using the serverName property which is IBDesignable. This must follow the naming conventions. See `serviceName` on the `MGNearbyServiceBrowser` class.
 	required public init?(coder aDecoder: NSCoder)
 	{
-		tableView = UITableView()
-		let peer = MGPeerID(displayName: nil)
-		self.browser = MGNearbyServiceBrowser(peer: peer, discoveryInfo: nil, serviceType: "custom-server")
+		let peer = MGPeerID()
+		self.browser = MGNearbyServiceBrowser(peer: peer, serviceType: serviceName)
 		self.session = MGSession(peer: peer)
 		super.init(coder: aDecoder)
-		self.browser.delegate = self
 	}
-	public override func loadView()
+	override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: NSBundle?)
 	{
-		super.loadView()
-		tableView.frame = view.frame
-		tableView.delegate = self
-		tableView.dataSource = self
-		navigationController?.navigationItem.title = ""
-		navigationItem.title = ""
-		navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Done, target: self, action: "donePressed:")
-		navigationItem.rightBarButtonItem?.enabled = false
-		navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Cancel, target: self, action: "cancelPressed:")
-		view.addSubview(tableView)
-	}
-	public override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator)
-	{
-		tableView.frame.size = size
-		
+		let peer = MGPeerID()
+		self.browser = MGNearbyServiceBrowser(peer: peer, serviceType: serviceName)
+		self.session = MGSession(peer: peer)
+		super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
 	}
 	
-	public override func viewDidAppear(animated: Bool)
+	override public func viewDidAppear(animated: Bool)
 	{
 		super.viewDidAppear(animated)
-		browser.startBrowsingForPeers()
-		NSNotificationCenter.defaultCenter().addObserver(self, selector: "sessionUpdated:", name: MGSession.sessionPeerStateUpdatedNotification, object: session)
-		tableView.reloadData()
-	}
-	public override func viewDidDisappear(animated: Bool)
-	{
-		super.viewDidDisappear(animated)
-		NSNotificationCenter.defaultCenter().removeObserver(self, name: MGSession.sessionPeerStateUpdatedNotification, object: session)
-		browser.stopBrowsingForPeers()
-	}
-	internal func sessionUpdated(notification: NSNotification)
-	{
-		guard notification.name == MGSession.sessionPeerStateUpdatedNotification
-		else
-		{
-			return
-		}
-		tableView.reloadData()
-	}
-	
-	// MARK: - Actions
-	func donePressed(sender: UIBarButtonItem)
-	{
-		guard session.connectedPeers.count >= minimumPeers && session.connectedPeers.count <= maximumPeers
-		else
-		{
-			return
-		}
-		dismissViewControllerAnimated(true, completion: nil)
-	}
-	func cancelPressed(sender: UIBarButtonItem)
-	{
-		session.disconnect()
-		dismissViewControllerAnimated(true, completion: nil)
+		let vc = MGBrowserTableViewController(browser: browser, session: session)
+		vc.delegate = self
+		pushViewController(vc, animated: true)
 	}
 }
-//MARK: - TableViewStuff
-extension MGBrowserViewController : UITableViewDelegate, UITableViewDataSource
-{
-	public func numberOfSectionsInTableView(tableView: UITableView) -> Int
-	{
-		return 2
-	}
-	public func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int
-	{
-		return section == 0 ? session.connectedPeers.count : availablePeers.count
-	}
-	
-	public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell
-	{
-		let cell : UITableViewCell
-		// TODO: Setup cell here
-		if indexPath.section == 0
-		{
-			cell = UITableViewCell(style: UITableViewCellStyle.Value1, reuseIdentifier: "connected")
-			cell.textLabel!.text = session.connectedPeers[indexPath.row].displayName
-			do
-			{
-				cell.detailTextLabel!.text = try session.stateForPeer(session.connectedPeers[indexPath.row]).description
-			}
-			catch
-			{
-				print(error)
-			}
-			cell.selectionStyle = .None
-		}
-		else
-		{
-			cell = UITableViewCell(style: UITableViewCellStyle.Default, reuseIdentifier: "available")
-			cell.textLabel!.text = availablePeers[indexPath.row].displayName
-			cell.selectionStyle = .Default
-		}
-		return cell
-	}
-	public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath)
-	{
-		tableView.cellForRowAtIndexPath(indexPath)!.setHighlighted(false, animated: true)
-		guard indexPath.section == 1 && maximumPeers > session.connectedPeers.count
-		else { return }
-		do
-		{
-			try browser.invitePeer(availablePeers[indexPath.row], toSession: session)
-			tableView.reloadSections(NSIndexSet(indexesInRange: NSRange(location: 0, length: 2)), withRowAnimation: .Automatic)
-		}
-		catch
-		{
-			print(error)
-		}
-	}
-	public func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String?
-	{
-		return section == 0 ? "Connected Peers" : "Available Peers"
-	}
-	public func tableView(tableView: UITableView, titleForFooterInSection section: Int) -> String?
-	{
-		return section == 0 ? nil : "This device will appear as \(browser.myPeerID.displayName). You must connect to at least \(minimumPeers) peers and no more than \(maximumPeers) peers."
-	}
-	
-}
-// MARK: - Browser stuff
-extension MGBrowserViewController : MGNearbyServiceBrowserDelegate
-{
-	public func browserDidStartSuccessfully(browser: MGNearbyServiceBrowser)
-	{
-		tableView.reloadSections(NSIndexSet(index: 1), withRowAnimation: .Automatic)
-	}
-	public func browser(browser: MGNearbyServiceBrowser, didNotStartBrowsingForPeers error: [String : NSNumber])
-	{
-		print(error)
-		assertionFailure()
-	}
-	public func browser(browser: MGNearbyServiceBrowser, foundPeer peerID: MGPeerID, withDiscoveryInfo info: [String : String]?)
-	{
-		assert(browser === self.browser)
-		guard peerID != session.myPeerID && peerID != browser.myPeerID
-		else { return } // This should never happen but its better to check
-		availablePeers.append(peerID)
-		tableView.reloadSections(NSIndexSet(index: 1), withRowAnimation: .Automatic)
-	}
-	public func browser(browser: MGNearbyServiceBrowser, lostPeer peerID: MGPeerID)
-	{
-		assert(browser === self.browser)
-		guard peerID != session.myPeerID && peerID != browser.myPeerID
-		else
-		{
-			fatalError("We lost the browser to our own peer. Something went wrong in the browser.")
-		}
-		availablePeers.removeElement(peerID)
-		tableView.reloadSections(NSIndexSet(index: 1), withRowAnimation: .Automatic)
-	}
-	public func browser(browser: MGNearbyServiceBrowser, didReceiveInvitationFromPeer peerID: MGPeerID, invitationHandler: (Bool, MGSession) -> Void)
-	{
-		guard session.connectedPeers.count == 0
-		else
-		{
-			// We are already connected to some peers so we can't accept any other connections.
-			invitationHandler(false, session)
-			return
-		}
-		let alertController = UIAlertController(title: "\(peerID.displayName) wants to connect?", message: nil, preferredStyle: .Alert)
-		alertController.addAction(UIAlertAction(title: "Accept", style: UIAlertActionStyle.Default, handler: {action in
-			invitationHandler(true, self.session)
-			// Remove self since we accepted the connection.
-			self.dismissViewControllerAnimated(true, completion: nil)
-		}))
-		alertController.addAction(UIAlertAction(title: "Decline", style: .Destructive, handler: { action  in
-			invitationHandler(false, self.session)
-		}))
-		presentViewController(alertController, animated: true, completion: nil)
-	}
-}
+extension MGBrowserViewController : MGBrowserTableViewControllerDelegate
+{}

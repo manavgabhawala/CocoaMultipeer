@@ -52,3 +52,11 @@ extension NSNetService
 		return dict
 	}
 }
+
+extension Int
+{
+	internal var peerText : String
+	{
+		return self == 1 ? "\(self) peer" : "\(self) peers"
+	}
+}

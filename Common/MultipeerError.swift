@@ -17,3 +17,16 @@ public enum MultipeerError : Int, ErrorType
 	///  Attempting to do something with a peer that isn't connected to the session.
 	case NotConnected
 }
+extension MultipeerError : CustomStringConvertible
+{
+	public var description: String
+	{
+		switch self
+		{
+		case .PeerNotFound:
+			return "The peer sent to the method wasn't found."
+		case .NotConnected:
+			return "Attempting to work with a peer that isn't connected"
+		}
+	}
+}

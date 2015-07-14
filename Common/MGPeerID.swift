@@ -31,7 +31,10 @@ import Foundation
 		name = displayName
 	}
 }
-
+extension MGPeerID : CustomStringConvertible
+{
+	public var description : String { return displayName }
+}
 extension MGPeerID : Equatable
 { }
 extension MGPeerID : Hashable

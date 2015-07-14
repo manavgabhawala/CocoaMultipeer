@@ -10,7 +10,7 @@ import Foundation
 
 @objc public protocol MGSessionDelegate
 {
-	///  Called when the state of a nearby peer changes.
+	///  Called when the state of a nearby peer changes. There are no guarantees about which thread this will be called.
 	///
 	///  - Parameter session: The session that manages the nearby peer whose state changed.
 	///  - Parameter peerID:  The ID of the nearby peer whose state changed.
@@ -18,7 +18,7 @@ import Foundation
 	///
 	func session(session: MGSession, peer peerID: MGPeerID, didChangeState state: MGSessionState)
 	
-	///  Indicates that an NSData object has been received from a nearby peer.
+	///  Indicates that an NSData object has been received from a nearby peer. You can be assured that this will be called on the main queue.
 	///
 	///  - Parameter session: The session through which the data was received.
 	///  - Parameter data:    An object containing the received data.
@@ -72,7 +72,7 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 	/// The maximum number of peers that a session can support, including the local peer.
 	public static var maximumAllowedPeers = 8
 	/// The minimum number of peers that a session can support, including the local peer.
-	public static var minimumAllowedPeers = 0
+	public static var minimumAllowedPeers = 1
 	
 	internal static let sessionPeerStateUpdatedNotification = "SessionPeerStateUpdatedNotification"
 	
@@ -174,16 +174,20 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 		
 		inputStream.delegate = self
 		inputStream.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
-		inputStream.open()
+		
 		outputStream.delegate = self
 		outputStream.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
-		outputStream.open()
+		
 		peers.append((peer: peer, state: .Connecting, input: inputStream, output: outputStream, writeLock: NSCondition()))
+		delegate?.session(self, peer: peer, didChangeState: .Connecting)
+		
+		inputStream.open()
+		outputStream.open()
 	}
 	
 	///  Use this function to introspect a peer and get its state.
 	///
-	///  :param: peer The peer whose state is wanted.
+	///  - Parameter peer: The peer whose state is wanted.
 	///
 	///  - Returns: The state of the peer. See `MGSessionState`
 	public func stateForPeer(peer: MGPeerID) throws -> MGSessionState
@@ -300,7 +304,9 @@ extension MGSession
 					lostPeer(i)
 				}
 			}
-			delegate?.session(self, didReceiveData: data, fromPeer: peer.peer)
+			dispatch_async(dispatch_get_main_queue(), {
+				self.delegate?.session(self, didReceiveData: data, fromPeer: peer.peer)
+			})
 			return
 		}
 		assertionFailure("Could not find the peer whose stream data was read from. Invalid state.")
@@ -332,11 +338,18 @@ extension MGSession
 	}
 	private func lostPeer(peerIndex: Int)
 	{
-		peers[peerIndex].input.close()
-		peers[peerIndex].output.close()
-		peers[peerIndex].state = .NotConnected
-		delegate?.session(self, peer: peers[peerIndex].peer, didChangeState: peers[peerIndex].state)
-		NSNotificationCenter.defaultCenter().postNotificationName(MGSession.sessionPeerStateUpdatedNotification, object: self, userInfo: nil)
-		peers.removeAtIndex(peerIndex)
+		if peers.count > peerIndex
+		{
+			peers[peerIndex].input.close()
+			peers[peerIndex].output.close()
+			peers[peerIndex].state = .NotConnected
+			delegate?.session(self, peer: peers[peerIndex].peer, didChangeState: peers[peerIndex].state)
+			NSNotificationCenter.defaultCenter().postNotificationName(MGSession.sessionPeerStateUpdatedNotification, object: self, userInfo: nil)
+			peers.removeAtIndex(peerIndex)
+		}
 	}
+}
+extension MGSession
+{
+	public override var description: String { return "Session for \(myPeerID) connected to \(connectedPeers)" }
 }
