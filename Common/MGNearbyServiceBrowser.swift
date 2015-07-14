@@ -213,7 +213,7 @@ extension MGNearbyServiceBrowser : NSNetServiceDelegate
 		assert(sender === server)
 		myPeerID.name = sender.name
 		browser.stop()
-		browser.searchForServicesOfType(fullServiceType, inDomain: "")
+		browser.searchForServicesOfType(fullServiceType, inDomain: sender.domain)
 		delegate?.browserDidStartSuccessfully?(self)
 	}
 	public func netService(sender: NSNetService, didNotPublish errorDict: [String : NSNumber])

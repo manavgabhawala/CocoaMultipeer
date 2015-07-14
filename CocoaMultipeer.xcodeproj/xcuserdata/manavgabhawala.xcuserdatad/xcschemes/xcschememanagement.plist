@@ -4,6 +4,11 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>Mac.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>4</integer>
+		</dict>
 		<key>MultipeerCocoaMac.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -33,6 +38,11 @@
 			<true/>
 		</dict>
 		<key>823F3EBC1B53F13500A7B7F1</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>828C622F1B551E3100E3F028</key>
 		<dict>
 			<key>primary</key>
 			<true/>

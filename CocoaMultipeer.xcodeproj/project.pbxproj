@@ -36,6 +36,12 @@
 		8283C8521B48806B0085868E /* Generics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8283C8511B48806B0085868E /* Generics.swift */; };
 		8283C8531B48806B0085868E /* Generics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8283C8511B48806B0085868E /* Generics.swift */; };
 		8283C8541B48806B0085868E /* Generics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8283C8511B48806B0085868E /* Generics.swift */; };
+		828C62331B551E3100E3F028 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828C62321B551E3100E3F028 /* AppDelegate.swift */; };
+		828C62351B551E3100E3F028 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 828C62341B551E3100E3F028 /* Assets.xcassets */; };
+		828C62381B551E3100E3F028 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 828C62361B551E3100E3F028 /* MainMenu.xib */; };
+		828C623D1B551EDD00E3F028 /* MultipeerCocoaMac.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 82CB0EF01B3B42F50092AFEB /* MultipeerCocoaMac.framework */; };
+		828C623E1B551EDD00E3F028 /* MultipeerCocoaMac.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 82CB0EF01B3B42F50092AFEB /* MultipeerCocoaMac.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		828C62431B5520D800E3F028 /* MGBrowserViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 828C62421B5520D800E3F028 /* MGBrowserViewController.xib */; };
 		82CB0ED71B3B42C70092AFEB /* MultipeerCocoaiOS.h in Headers */ = {isa = PBXBuildFile; fileRef = 82CB0ED61B3B42C70092AFEB /* MultipeerCocoaiOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		82CB0EF31B3B42F50092AFEB /* MultipeerCocoaMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 82CB0EF21B3B42F50092AFEB /* MultipeerCocoaMac.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		82CB0F0F1B3B43200092AFEB /* MultipeerCocoaWatchOS.h in Headers */ = {isa = PBXBuildFile; fileRef = 82CB0F0E1B3B43200092AFEB /* MultipeerCocoaWatchOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -49,6 +55,13 @@
 			remoteGlobalIDString = 82CB0ED21B3B42C70092AFEB;
 			remoteInfo = MultipeerCocoaiOS;
 		};
+		828C623F1B551EDD00E3F028 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 82CB0EC61B3B40910092AFEB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 82CB0EEF1B3B42F50092AFEB;
+			remoteInfo = MultipeerCocoaMac;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -59,6 +72,17 @@
 			dstSubfolderSpec = 10;
 			files = (
 				823F3ED41B53F94500A7B7F1 /* MultipeerCocoaiOS.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		828C62411B551EDE00E3F028 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				828C623E1B551EDD00E3F028 /* MultipeerCocoaMac.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -83,6 +107,12 @@
 		824854B21B4870A600B12925 /* MGBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGBrowserViewController.swift; sourceTree = "<group>"; };
 		8257B2B41B54D896001EA70C /* MGBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGBrowserViewController.swift; sourceTree = "<group>"; };
 		8283C8511B48806B0085868E /* Generics.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Generics.swift; sourceTree = "<group>"; };
+		828C62301B551E3100E3F028 /* Mac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		828C62321B551E3100E3F028 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		828C62341B551E3100E3F028 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		828C62371B551E3100E3F028 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		828C62391B551E3100E3F028 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		828C62421B5520D800E3F028 /* MGBrowserViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MGBrowserViewController.xib; sourceTree = "<group>"; };
 		82CB0ECC1B3B40AE0092AFEB /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		82CB0ECD1B3B40AE0092AFEB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		82CB0ED31B3B42C70092AFEB /* MultipeerCocoaiOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MultipeerCocoaiOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -102,6 +132,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				823F3ED31B53F94500A7B7F1 /* MultipeerCocoaiOS.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		828C622D1B551E3100E3F028 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				828C623D1B551EDD00E3F028 /* MultipeerCocoaMac.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,6 +171,7 @@
 			isa = PBXGroup;
 			children = (
 				823F3EBE1B53F13500A7B7F1 /* iOS */,
+				828C62311B551E3100E3F028 /* Mac */,
 			);
 			name = Demos;
 			sourceTree = "<group>";
@@ -148,6 +187,17 @@
 				823F3ECB1B53F13500A7B7F1 /* Info.plist */,
 			);
 			path = iOS;
+			sourceTree = "<group>";
+		};
+		828C62311B551E3100E3F028 /* Mac */ = {
+			isa = PBXGroup;
+			children = (
+				828C62321B551E3100E3F028 /* AppDelegate.swift */,
+				828C62341B551E3100E3F028 /* Assets.xcassets */,
+				828C62361B551E3100E3F028 /* MainMenu.xib */,
+				828C62391B551E3100E3F028 /* Info.plist */,
+			);
+			path = Mac;
 			sourceTree = "<group>";
 		};
 		82CB0EC51B3B40910092AFEB = {
@@ -171,6 +221,7 @@
 				82CB0EF01B3B42F50092AFEB /* MultipeerCocoaMac.framework */,
 				82CB0F0C1B3B43200092AFEB /* MultipeerCocoaWatchOS.framework */,
 				823F3EBD1B53F13500A7B7F1 /* iOS.app */,
+				828C62301B551E3100E3F028 /* Mac.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -192,6 +243,7 @@
 				82CB0EF21B3B42F50092AFEB /* MultipeerCocoaMac.h */,
 				82CB0EF41B3B42F50092AFEB /* Info.plist */,
 				824854B01B48707700B12925 /* MGBrowserViewController.swift */,
+				828C62421B5520D800E3F028 /* MGBrowserViewController.xib */,
 			);
 			path = MultipeerCocoaMac;
 			sourceTree = "<group>";
@@ -268,6 +320,25 @@
 			productReference = 823F3EBD1B53F13500A7B7F1 /* iOS.app */;
 			productType = "com.apple.product-type.application";
 		};
+		828C622F1B551E3100E3F028 /* Mac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 828C623C1B551E3100E3F028 /* Build configuration list for PBXNativeTarget "Mac" */;
+			buildPhases = (
+				828C622C1B551E3100E3F028 /* Sources */,
+				828C622D1B551E3100E3F028 /* Frameworks */,
+				828C622E1B551E3100E3F028 /* Resources */,
+				828C62411B551EDE00E3F028 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				828C62401B551EDD00E3F028 /* PBXTargetDependency */,
+			);
+			name = Mac;
+			productName = Mac;
+			productReference = 828C62301B551E3100E3F028 /* Mac.app */;
+			productType = "com.apple.product-type.application";
+		};
 		82CB0ED21B3B42C70092AFEB /* MultipeerCocoaiOS */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 82CB0EE51B3B42C70092AFEB /* Build configuration list for PBXNativeTarget "MultipeerCocoaiOS" */;
@@ -334,6 +405,9 @@
 					823F3EBC1B53F13500A7B7F1 = {
 						CreatedOnToolsVersion = 7.0;
 					};
+					828C622F1B551E3100E3F028 = {
+						CreatedOnToolsVersion = 7.0;
+					};
 					82CB0ED21B3B42C70092AFEB = {
 						CreatedOnToolsVersion = 7.0;
 					};
@@ -362,6 +436,7 @@
 				82CB0EEF1B3B42F50092AFEB /* MultipeerCocoaMac */,
 				82CB0F0B1B3B43200092AFEB /* MultipeerCocoaWatchOS */,
 				823F3EBC1B53F13500A7B7F1 /* iOS */,
+				828C622F1B551E3100E3F028 /* Mac */,
 			);
 		};
 /* End PBXProject section */
@@ -377,6 +452,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		828C622E1B551E3100E3F028 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				828C62351B551E3100E3F028 /* Assets.xcassets in Resources */,
+				828C62381B551E3100E3F028 /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		82CB0ED11B3B42C70092AFEB /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -388,6 +472,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				828C62431B5520D800E3F028 /* MGBrowserViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -407,6 +492,14 @@
 			files = (
 				823F3EC21B53F13500A7B7F1 /* ViewController.swift in Sources */,
 				823F3EC01B53F13500A7B7F1 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		828C622C1B551E3100E3F028 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				828C62331B551E3100E3F028 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -461,6 +554,11 @@
 			target = 82CB0ED21B3B42C70092AFEB /* MultipeerCocoaiOS */;
 			targetProxy = 823F3ED01B53F16C00A7B7F1 /* PBXContainerItemProxy */;
 		};
+		828C62401B551EDD00E3F028 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 82CB0EEF1B3B42F50092AFEB /* MultipeerCocoaMac */;
+			targetProxy = 828C623F1B551EDD00E3F028 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
@@ -478,6 +576,14 @@
 				823F3EC91B53F13500A7B7F1 /* Base */,
 			);
 			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		828C62361B551E3100E3F028 /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				828C62371B551E3100E3F028 /* Base */,
+			);
+			name = MainMenu.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -575,6 +681,100 @@
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		828C623A1B551E3100E3F028 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = Mac/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = ManavGabhawala.Mac;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		828C623B1B551E3100E3F028 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = Mac/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = ManavGabhawala.Mac;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
 			};
 			name = Release;
 		};
@@ -716,6 +916,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
@@ -774,6 +975,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
@@ -927,6 +1129,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		828C623C1B551E3100E3F028 /* Build configuration list for PBXNativeTarget "Mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				828C623A1B551E3100E3F028 /* Debug */,
+				828C623B1B551E3100E3F028 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 		82CB0EC91B3B40910092AFEB /* Build configuration list for PBXProject "CocoaMultipeer" */ = {
 			isa = XCConfigurationList;
