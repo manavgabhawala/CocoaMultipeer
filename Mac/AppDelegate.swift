@@ -9,13 +9,14 @@
 import Cocoa
 import MultipeerCocoaMac
 
+let peer = MGPeerID()
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
 
 	@IBOutlet weak var window: NSWindow!
 	@IBOutlet var textView : NSTextView!
-	let session = MGSession(peer: MGPeerID())
-	let browser = MGNearbyServiceBrowser(peer: MGPeerID(), discoveryInfo: nil, serviceType: "peer-demo")
+	let session = MGSession(peer: peer)
+	let browser = MGNearbyServiceBrowser(peer: peer, discoveryInfo: nil, serviceType: "peer-demo")
 	
 	func applicationDidFinishLaunching(aNotification: NSNotification) {
 		// Insert code here to initialize your application

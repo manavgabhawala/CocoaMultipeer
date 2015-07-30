@@ -11,9 +11,15 @@ import Foundation
 /// The MGPeerID class represents a peer in a multipeer session.
 /// The Cocoa Multipeer framework is responsible for creating peer objects that represent other devices. Your app is responsible for creating a single peer object that represents the instance of your app that is running on the local device.
 ///  To create a new peer ID for the local app and associate a display name with that ID, call initWithDisplayName:. The peer’s name must be no longer than 63 bytes in UTF-8 encoding.
-@objc public class MGPeerID
+@objc public class MGPeerID: NSObject
 {
 	internal var name: String?
+	{
+		didSet
+		{
+			MGDebugLog("Updated the peer's name to \(name) from \(oldValue)")
+		}
+	}
 	
 	/// The display name for this peer. (read-only). If you passed nil into the initalizer this will be an empty string until the framework sets everything up and assigns a name to the Peer. In order to track this property try accessing it after 
 	/// For other peer objects provided to you by the framework, this property is provided by the peer and cannot be changed.
@@ -31,16 +37,17 @@ import Foundation
 		name = displayName
 	}
 }
-extension MGPeerID : CustomStringConvertible
+// MARK: - CustomStringConvertible
+extension MGPeerID
 {
-	public var description : String { return displayName }
+	public override var description : String { return displayName }
 }
-extension MGPeerID : Equatable
-{ }
-extension MGPeerID : Hashable
+// MARK: - Hashable
+extension MGPeerID
 {
-	public var hashValue: Int { return displayName.hashValue }
+	public override var hashValue: Int { return displayName.hashValue }
 }
+// MARK: - Equatable
 public func ==(lhs: MGPeerID, rhs: MGPeerID) -> Bool
 {
 	return lhs.name == rhs.name

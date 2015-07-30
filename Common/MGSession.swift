@@ -10,7 +10,7 @@ import Foundation
 
 @objc public protocol MGSessionDelegate
 {
-	///  Called when the state of a nearby peer changes. There are no guarantees about which thread this will be called.
+	///  Called when the state of a nearby peer changes. There are no guarantees about which thread this will be called on.
 	///
 	///  - Parameter session: The session that manages the nearby peer whose state changed.
 	///  - Parameter peerID:  The ID of the nearby peer whose state changed.
@@ -18,7 +18,7 @@ import Foundation
 	///
 	func session(session: MGSession, peer peerID: MGPeerID, didChangeState state: MGSessionState)
 	
-	///  Indicates that an NSData object has been received from a nearby peer. You can be assured that this will be called on the main queue.
+	///  Indicates that an NSData object has been received from a nearby peer. You can be assured that this will be called on the main thread.
 	///
 	///  - Parameter session: The session through which the data was received.
 	///  - Parameter data:    An object containing the received data.
@@ -27,11 +27,11 @@ import Foundation
 }
 
 /**
-#### Abstract
+#### Abstract:
 A MGSession facilitates communication among all peers in a multipeer
 session.
 
-#### Discussion
+#### Discussion:
 
 To start a multipeer session with remote peers, a MGPeerID that
 represents the local peer needs to be supplied to the init method.
@@ -106,89 +106,154 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 	///
 	///  - Parameter data:    An object containing the message to send.
 	///  - Parameter peerIDs: An array of peer ID objects representing the peers that should receive the message.
+	///  - Throws: MultipeerError.NotConnected error if you are attempting to send data to a peer that is not connected. Try checking the status of the peer again, reestablishing the connection by allowing the user to reinvite the lost device.
 	public func sendData(data: NSData, toPeers peerIDs: [MGPeerID]) throws
 	{
-		for peer in peers.filter({ peerIDs.contains($0.peer) })
+		// First lets setup our packets.
+		var packet = [UInt8]()
+		packet.reserveCapacity(self.packetSize)
+		let packets = Array(count: data.length / self.packetSize, repeatedValue: packet)
+		for (i, var packet) in packets.enumerate()
+		{
+			let location = i * packetSize
+			let range: NSRange
+			// Push as much of data as possible onto a single packet
+			if data.length < location + packetSize
+			{
+				range = NSRange(location: location, length: data.length - location)
+			}
+			else
+			{
+				range = NSRange(location: location, length: packetSize)
+			}
+			data.getBytes(&packet, range: range)
+			if packet.count == 0
+			{
+				var bytes = UnsafePointer<UInt8>(data.bytes).advancedBy(range.location)
+				for _ in 0..<range.length
+				{
+					packet.append(bytes.memory)
+					bytes = bytes.successor()
+				}
+			}
+		}
+		for (i, peer) in peers.filter({ peerIDs.contains($0.peer) }).enumerate()
 		{
 			guard (peer.state == .Connected)
 			else
 			{
 				throw MultipeerError.NotConnected
 			}
-			// First lets setup our packets.
-			var packet = [UInt8]()
-			packet.reserveCapacity(self.packetSize)
-			let packets = Array(count: data.length / self.packetSize, repeatedValue: packet)
-			for (i, var packet) in packets.enumerate()
-			{
-				let location = i * packetSize
-				let range: NSRange
-				// Push as much of data as possible onto a single packet
-				if data.length < location + packetSize
-				{
-					range = NSRange(location: location, length: data.length - location)
-				}
+			
+			// Send the packet in the background while we continue creating the other packets and also sending to the other peers.
+			dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+				guard peer.state == .Connected
 				else
 				{
-					range = NSRange(location: location, length: packetSize)
+					self.lostPeer(i)
+					return
 				}
-				data.getBytes(&packet, range: range)
-				if packet.count == 0
+				peer.writeLock.lock()
+				while !peer.output.hasSpaceAvailable
 				{
-					var bytes = UnsafePointer<UInt8>(data.bytes)
-					for _ in 0..<data.length
-					{
-						packet.append(bytes.memory)
-						bytes = bytes.successor()
-					}
+					peer.writeLock.wait()
 				}
-				// Send the packet in the background while we continue creating the other packets.
-				dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-					peer.writeLock.lock()
-					while !peer.output.hasSpaceAvailable
-					{
-						peer.writeLock.wait()
-					}
-					// Now we know there is space on the outputStream so write to it.
-					let len = peer.output.write(&packet, maxLength: packet.count)
+				defer
+				{
 					peer.writeLock.unlock()
-					// If no data could be written the connection was probably lost.
-					guard len > 0
-					else
-					{
-						try! self.disconnectFromPeer(peer.peer)
-						return
-					}
-					// Guard against spuriously waking up other threads.
-					guard peer.output.hasSpaceAvailable
-					else { return }
-					peer.writeLock.signal()
-				})
-			}
+				}
+				// Now we know there is space on the outputStream so write to it.
+				let len = peer.output.write(&packet, maxLength: packet.count)
+				
+				// If no data could be written the connection was probably lost.
+				guard len > 0
+				else
+				{
+					try! self.disconnectFromPeer(peer.peer)
+					return
+				}
+				// Guard against spuriously waking up other threads.
+				guard peer.output.hasSpaceAvailable
+				else { return }
+				peer.writeLock.signal()
+			})
 		}
 	}
 	
-	internal func connectToPeer(peer: MGPeerID, inputStream: NSInputStream, outputStream: NSOutputStream)
+	///  Sets up an initial connection to the peer.
+	///
+	///  - parameter peer:         The peer to whom a connection is being established.
+	///  - parameter inputStream:  The inputStream over which data can be recieved.
+	///  - parameter outputStream: The outputStream over which data can be sent.
+	///
+	///  - throws: Throws a ConnectionAttemptFailed if there are too many connected peers.
+	internal func initialConnectToPeer(peer: MGPeerID, inputStream: NSInputStream, outputStream: NSOutputStream) throws
 	{
-		assert(peers.count < MGSession.maximumAllowedPeers, "Attempting to add to many peers to the session. Currently, \(peers.count) peers exist. The maximum allowed number of peers is \(MGSession.maximumAllowedPeers)")
-		
-		inputStream.delegate = self
-		inputStream.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
-		
-		outputStream.delegate = self
-		outputStream.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
-		
+		guard peers.count < MGSession.maximumAllowedPeers
+		else
+		{
+			throw MultipeerError.ConnectionAttemptFailed
+		}
 		peers.append((peer: peer, state: .Connecting, input: inputStream, output: outputStream, writeLock: NSCondition()))
 		delegate?.session(self, peer: peer, didChangeState: .Connecting)
-		
-		inputStream.open()
-		outputStream.open()
 	}
+	
+	///  Finalizes the connection to the peer.
+	///
+	///  - parameter peer: The peer to which the connection is now open.
+	///  - throws: Throws a PeerNotFound error if the peer doesn't exist or a connection attempt failed if the peer's streams aren't alive.
+	internal func finalizeConnectionToPeer(peer: MGPeerID) throws
+	{
+		guard let index = peers.indexOf( { $0.peer == peer })
+		else
+		{
+			throw MultipeerError.PeerNotFound
+		}
+		guard peers[index].output.isAlive && peers[index].input.isAlive
+		else
+		{
+			throw MultipeerError.ConnectionAttemptFailed
+		}
+		peers[index].input.delegate = self
+		peers[index].output.delegate = self
+		peers[index].state = .Connected
+		delegate?.session(self, peer: peers[index].peer, didChangeState: peers[index].state)
+	}
+	///  Rejects the connection to the peer.
+	///
+	///  - parameter peer: The peer to reject teh connection to.
+	///  - throws: A peer not found error if the peer passed couldn't be found.
+	internal func rejectConnectionToPeer(peer: MGPeerID) throws
+	{
+		guard let index = peers.indexOf( { $0.peer == peer })
+		else
+		{
+			throw MultipeerError.PeerNotFound
+		}
+		lostPeer(index)
+	}
+	
+//	internal func connectToPeer(peer: MGPeerID, inputStream: NSInputStream, outputStream: NSOutputStream)
+//	{
+//		assert(peers.count < MGSession.maximumAllowedPeers, "Attempting to add to many peers to the session. Currently, \(peers.count) peers exist. The maximum allowed number of peers is \(MGSession.maximumAllowedPeers)")
+//		
+//		inputStream.delegate = self
+//		inputStream.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
+//		
+//		outputStream.delegate = self
+//		outputStream.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
+//		
+//		peers.append((peer: peer, state: .Connecting, input: inputStream, output: outputStream, writeLock: NSCondition()))
+//		delegate?.session(self, peer: peer, didChangeState: .Connecting)
+//		
+//		inputStream.open()
+//		outputStream.open()
+//	}
 	
 	///  Use this function to introspect a peer and get its state.
 	///
 	///  - Parameter peer: The peer whose state is wanted.
-	///
+	///  - Throws: A `MultipeerError.PeerNotFound` error if the peer doesn't exist in the list of peers returned by `connectedPeers`.
 	///  - Returns: The state of the peer. See `MGSessionState`
 	public func stateForPeer(peer: MGPeerID) throws -> MGSessionState
 	{
@@ -203,6 +268,7 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 	///  Disconnects the remote peer from the session. Usually, you would call this on the server and not the client. See `disconnect` for client side disconnects.
 	///
 	///  - Parameter peer: The peer to disconnect from the server.
+	///  - Throws: A `MultipeerError.PeerNotFound` error if the peer doesn't exist in the list of peers returned by `connectedPeers`.
 	public func disconnectFromPeer(peer: MGPeerID) throws
 	{
 		guard let index = peers.indexOf({ $0.peer == peer })
@@ -213,7 +279,7 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 		lostPeer(index)
 	}
 	
-	///  Disconnects the local peer from the session.
+	///  Disconnects the local peer from the session. This will close all connections on the `peer` whether its acting as a client or a server.
 	public func disconnect()
 	{
 		for i in 0..<peers.count
@@ -327,26 +393,26 @@ extension MGSession
 	private func streamEncounteredEnd(stream: NSStream)
 	{
 		// Remote side died, tell the delegate that connection was lost.
-		for (i, peer) in peers.enumerate()
+		guard let index = peers.indexOf({ $0.output == stream || $0.input == stream })
+		else
 		{
-			guard stream == peer.output || stream == peer.input
-			else { continue }
-			lostPeer(i)
-			return
+			fatalError("Could not find the peer whose stream died. Invalid state.")
 		}
-		assertionFailure("Could not find the peer whose stream died. Invalid state.")
+		lostPeer(index)
 	}
 	private func lostPeer(peerIndex: Int)
 	{
-		if peers.count > peerIndex
+		guard peerIndex >= 0 && peers.count < 0
+		else
 		{
-			peers[peerIndex].input.close()
-			peers[peerIndex].output.close()
-			peers[peerIndex].state = .NotConnected
-			delegate?.session(self, peer: peers[peerIndex].peer, didChangeState: peers[peerIndex].state)
-			NSNotificationCenter.defaultCenter().postNotificationName(MGSession.sessionPeerStateUpdatedNotification, object: self, userInfo: nil)
-			peers.removeAtIndex(peerIndex)
+			return
 		}
+		peers[peerIndex].input.close()
+		peers[peerIndex].output.close()
+		peers[peerIndex].state = .NotConnected
+		delegate?.session(self, peer: peers[peerIndex].peer, didChangeState: peers[peerIndex].state)
+		NSNotificationCenter.defaultCenter().postNotificationName(MGSession.sessionPeerStateUpdatedNotification, object: self, userInfo: nil)
+		peers.removeAtIndex(peerIndex)
 	}
 }
 extension MGSession

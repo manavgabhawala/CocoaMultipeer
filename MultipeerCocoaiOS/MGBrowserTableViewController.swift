@@ -30,7 +30,7 @@ protocol MGBrowserTableViewControllerDelegate : NSObjectProtocol
 	/// Initializes a browser view controller with the provided browser and session.
 	/// - Parameter browser: An object that the browser view controller uses for browsing. This is usually an instance of MGNearbyServiceBrowser. However, if your app is using a custom discovery scheme, you can instead pass any custom subclass that calls the methods defined in the MCNearbyServiceBrowserDelegate protocol on its delegate when peers are found and lost.
 	/// - Parameter session: The multipeer session into which the invited peers are connected.
-	/// Returns: An initialized browser.
+	/// - Returns: An initialized browser.
 	/// - Warning: If you want the browser view controller to manage the browsing process, the browser object must not be actively browsing, and its delegate must be nil.
 	internal init(browser: MGNearbyServiceBrowser, session: MGSession)
 	{
@@ -105,7 +105,8 @@ protocol MGBrowserTableViewControllerDelegate : NSObjectProtocol
 				}
 				catch
 				{
-					print(error)
+					MGLog(error)
+					MGDebugLog("An error occurred while attempting to find a peer: \(error)")
 				}
 			}
 			if indicesToAdd.count > 0
@@ -173,7 +174,8 @@ extension MGBrowserTableViewController
 			}
 			catch
 			{
-				print(error)
+				MGLog(error)
+				MGDebugLog("An error while attempting to find a peer: \(error)")
 			}
 			cell.selectionStyle = .None
 		}
@@ -197,7 +199,8 @@ extension MGBrowserTableViewController
 			}
 			catch
 			{
-				print(error)
+				MGLog("Couldn't find peer. Refreshing.")
+				MGDebugLog("Attemtpting to connect to an unknown service. Removing teh listing and refreshing the view to recover. \(error)")
 				self.availablePeers.removeAtIndex(indexPath.row)
 				// Couldn't find the peer so let's reload the table.
 				self.tableView.reloadData()
@@ -223,8 +226,7 @@ extension MGBrowserTableViewController : MGNearbyServiceBrowserDelegate
 	}
 	internal func browser(browser: MGNearbyServiceBrowser, didNotStartBrowsingForPeers error: [String : NSNumber])
 	{
-		print(error)
-		assertionFailure()
+		// TODO: Handle the error.
 	}
 	internal func browser(browser: MGNearbyServiceBrowser, foundPeer peerID: MGPeerID, withDiscoveryInfo info: [String : String]?)
 	{

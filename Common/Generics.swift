@@ -12,21 +12,7 @@ extension Array where Element : Equatable
 {
 	mutating func removeElement(element: Generator.Element)
 	{
-		guard let index = self.indexOf(element)
-		else
-		{
-			fatalError("Could not find the element inside the reciever type. To silently exit when the element is not found use `removeElementSafely:` instead.")
-		}
-		self.removeAtIndex(index)
-	}
-	mutating func removeElementSafely(element: Generator.Element)
-	{
-		guard let index = self.indexOf(element)
-			else
-		{
-			return
-		}
-		self.removeAtIndex(index)
+		self = filter({ $0 != element })
 	}
 }
 extension NSNetService
@@ -59,4 +45,52 @@ extension Int
 	{
 		return self == 1 ? "\(self) peer" : "\(self) peers"
 	}
+}
+
+extension NSStream
+{
+	internal var isAlive: Bool { return streamStatus == .Open || streamStatus == .Writing || streamStatus == .Reading }
+}
+
+/// Change this value to true to get a normal log of the details of the server. If debug log is on normal logging doesn't occur but the debug logging logs all the output that normal log would with more detail. By default this is true.
+public var normalLog = true
+/// Change this value to true in order to get a detailed log of everything happening under the covers. By default this is true.
+public var debugLog = true
+
+internal func MGLog<Item>(item: Item)
+{
+	guard normalLog && !debugLog
+	else
+	{
+		return
+	}
+	print(item)
+}
+internal func MGLog<Item>(item: Item?)
+{
+	guard normalLog && !debugLog
+	else
+	{
+		return
+	}
+	print(item)
+}
+
+internal func MGDebugLog<Item>(item: Item)
+{
+	guard debugLog
+	else
+	{
+		return
+	}
+	debugPrint(item)
+}
+internal func MGDebugLog<Item>(item: Item?)
+{
+	guard normalLog
+	else
+	{
+		return
+	}
+	debugPrint(item)
 }

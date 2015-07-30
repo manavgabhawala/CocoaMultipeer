@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		82192A0E1B63F3D00060267E /* MGNearbyServiceBrowserDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82192A0D1B63F3D00060267E /* MGNearbyServiceBrowserDelegate.swift */; };
+		82192A0F1B63F3D00060267E /* MGNearbyServiceBrowserDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82192A0D1B63F3D00060267E /* MGNearbyServiceBrowserDelegate.swift */; };
+		82192A101B63F3D00060267E /* MGNearbyServiceBrowserDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82192A0D1B63F3D00060267E /* MGNearbyServiceBrowserDelegate.swift */; };
 		823F3E8C1B53B6A000A7B7F1 /* MultipeerError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 823F3E8B1B53B6A000A7B7F1 /* MultipeerError.swift */; };
 		823F3E8D1B53B6A000A7B7F1 /* MultipeerError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 823F3E8B1B53B6A000A7B7F1 /* MultipeerError.swift */; };
 		823F3E8E1B53B6A000A7B7F1 /* MultipeerError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 823F3E8B1B53B6A000A7B7F1 /* MultipeerError.swift */; };
@@ -90,6 +93,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		82192A0D1B63F3D00060267E /* MGNearbyServiceBrowserDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGNearbyServiceBrowserDelegate.swift; sourceTree = "<group>"; };
 		823F3E8B1B53B6A000A7B7F1 /* MultipeerError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultipeerError.swift; sourceTree = "<group>"; };
 		823F3E8F1B53D0E600A7B7F1 /* MGSessionState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGSessionState.swift; sourceTree = "<group>"; };
 		823F3EBD1B53F13500A7B7F1 /* iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -264,6 +268,7 @@
 				8283C8511B48806B0085868E /* Generics.swift */,
 				824854A01B485F6D00B12925 /* MGPeerID.swift */,
 				824854A81B48662A00B12925 /* MGNearbyServiceBrowser.swift */,
+				82192A0D1B63F3D00060267E /* MGNearbyServiceBrowserDelegate.swift */,
 				823F3E8B1B53B6A000A7B7F1 /* MultipeerError.swift */,
 				824854A41B48636C00B12925 /* MGSession.swift */,
 				823F3E8F1B53D0E600A7B7F1 /* MGSessionState.swift */,
@@ -512,6 +517,7 @@
 				824854A91B48662A00B12925 /* MGNearbyServiceBrowser.swift in Sources */,
 				8283C8521B48806B0085868E /* Generics.swift in Sources */,
 				824854A11B485F6D00B12925 /* MGPeerID.swift in Sources */,
+				82192A0E1B63F3D00060267E /* MGNearbyServiceBrowserDelegate.swift in Sources */,
 				823F3E8C1B53B6A000A7B7F1 /* MultipeerError.swift in Sources */,
 				824854AF1B48704D00B12925 /* MGBrowserTableViewController.swift in Sources */,
 				8257B2B51B54D896001EA70C /* MGBrowserViewController.swift in Sources */,
@@ -526,6 +532,7 @@
 				824854A61B48636C00B12925 /* MGSession.swift in Sources */,
 				824854AA1B48662A00B12925 /* MGNearbyServiceBrowser.swift in Sources */,
 				8283C8531B48806B0085868E /* Generics.swift in Sources */,
+				82192A0F1B63F3D00060267E /* MGNearbyServiceBrowserDelegate.swift in Sources */,
 				824854A21B485F6D00B12925 /* MGPeerID.swift in Sources */,
 				823F3E8D1B53B6A000A7B7F1 /* MultipeerError.swift in Sources */,
 				824854B11B48707700B12925 /* MGBrowserViewController.swift in Sources */,
@@ -540,6 +547,7 @@
 				824854A71B48636C00B12925 /* MGSession.swift in Sources */,
 				824854AB1B48662A00B12925 /* MGNearbyServiceBrowser.swift in Sources */,
 				8283C8541B48806B0085868E /* Generics.swift in Sources */,
+				82192A101B63F3D00060267E /* MGNearbyServiceBrowserDelegate.swift in Sources */,
 				824854A31B485F6D00B12925 /* MGPeerID.swift in Sources */,
 				823F3E8E1B53B6A000A7B7F1 /* MultipeerError.swift in Sources */,
 				824854B31B4870A600B12925 /* MGBrowserViewController.swift in Sources */,
@@ -833,7 +841,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = MultipeerCocoaiOS/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -885,7 +893,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = MultipeerCocoaiOS/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = ManavGabhawala.MultipeerCocoaiOS;
@@ -945,7 +953,7 @@
 				INFOPLIST_FILE = MultipeerCocoaMac/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = ManavGabhawala.MultipeerCocoaMac;
@@ -998,7 +1006,7 @@
 				INFOPLIST_FILE = MultipeerCocoaMac/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = ManavGabhawala.MultipeerCocoaMac;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1137,6 +1145,7 @@
 				828C623B1B551E3100E3F028 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		82CB0EC91B3B40910092AFEB /* Build configuration list for PBXProject "CocoaMultipeer" */ = {
 			isa = XCConfigurationList;

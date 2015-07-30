@@ -149,7 +149,7 @@ extension MGBrowserViewController : NSTableViewDataSource, NSTableViewDelegate
 		{
 			if (row >= 0 && row < peers.count)
 			{
-				let cellView = tableView.makeViewWithIdentifier("cell", owner: self) as! NSTableCellView
+				let cellView = tableView.makeViewWithIdentifier("connection_cell", owner: self) as! NSTableCellView
 				cellView.textField!.stringValue = peers[row].displayName
 				return cellView
 			}
@@ -159,14 +159,14 @@ extension MGBrowserViewController : NSTableViewDataSource, NSTableViewDelegate
 		{
 			if (row >= 0 && row < peers.count)
 			{
-				let cellView = tableView.makeViewWithIdentifier("cell", owner: self) as! NSTableCellView
+				let cellView = tableView.makeViewWithIdentifier("status_cell", owner: self) as! NSTableCellView
 				do
 				{
 					cellView.textField!.stringValue = try session.stateForPeer(peers[row]).description
 				}
 				catch
 				{
-					cellView.textField!.stringValue = MGSessionState.NotConnected.description
+					cellView.textField!.stringValue = ""
 				}
 				return cellView
 			}
