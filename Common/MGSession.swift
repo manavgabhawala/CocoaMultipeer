@@ -88,7 +88,7 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 	private var peers = [(peer: MGPeerID, state: MGSessionState, input: NSInputStream, output: NSOutputStream, writeLock: NSCondition)]()
 	
 	// This property determines how much data is written/read at a time.
-	private let packetSize : Int = 255
+	internal static let packetSize : Int = 255
 	
 	
 	///  Creates a Cocoa Multipeer session.
@@ -102,39 +102,57 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 		peers = [(peer: MGPeerID, state: MGSessionState, input: NSInputStream, output: NSOutputStream, writeLock: NSCondition)]()
 	}
 	
-	///  Sends a message encapsulated in an NSData object to nearby peers. For best results keep the NSData size to 255 bytes. However, larger instances are supported, but handling this larger data being recieved is left up to you. See the delegate's `session:didRecieveData:fromPeer` method. This method only blocks for very very large NSData instances, for such cases do not call this method on the main thread, otherwise calling it on the main thread is fine.
+	/// Sends a message encapsulated in an NSData object to nearby peers. For best results keep the NSData size to 255 bytes. However, larger instances are supported, but handling recieivng this larger data is left up to you. See the delegate's `session:didRecieveData:fromPeer` method. 
+	///
+	/// - Warning: This method blocks for very very large NSData instances, for such cases do not call this method on the main thread, otherwise calling it on the main thread is fine. In general, we move the data into packets on the thread that this method is called on but send data over the network on a background thread. If you think the copying is going to be an expensive operation dispatch this on a concurrent/serial background queue using Grand Central Dispatch.
 	///
 	///  - Parameter data:    An object containing the message to send.
 	///  - Parameter peerIDs: An array of peer ID objects representing the peers that should receive the message.
 	///  - Throws: MultipeerError.NotConnected error if you are attempting to send data to a peer that is not connected. Try checking the status of the peer again, reestablishing the connection by allowing the user to reinvite the lost device.
 	public func sendData(data: NSData, toPeers peerIDs: [MGPeerID]) throws
 	{
+		guard data.length > 0
+		else
+		{
+			// If there is no data to write why bother wasting time early exit.
+			return
+		}
 		// First lets setup our packets.
 		var packet = [UInt8]()
-		packet.reserveCapacity(self.packetSize)
-		let packets = Array(count: data.length / self.packetSize, repeatedValue: packet)
-		for (i, var packet) in packets.enumerate()
+		packet.reserveCapacity(MGSession.packetSize)
+		var packets = Array<[UInt8]>()
+		let numberOfPackets = Int(ceil(Double(data.length) / Double(MGSession.packetSize)))
+		packets.reserveCapacity(numberOfPackets)
+		for i in 0..<numberOfPackets
 		{
-			let location = i * packetSize
+			let location = i * MGSession.packetSize
 			let range: NSRange
 			// Push as much of data as possible onto a single packet
-			if data.length < location + packetSize
+			if data.length < location + MGSession.packetSize
 			{
 				range = NSRange(location: location, length: data.length - location)
 			}
 			else
 			{
-				range = NSRange(location: location, length: packetSize)
+				range = NSRange(location: location, length: MGSession.packetSize)
 			}
-			data.getBytes(&packet, range: range)
-			if packet.count == 0
+			var bytes = UnsafePointer<UInt8>(data.bytes).advancedBy(range.location)
+			if range.length < packet.count
 			{
-				var bytes = UnsafePointer<UInt8>(data.bytes).advancedBy(range.location)
-				for _ in 0..<range.length
+				// Only empty the packet so that we don't get bad data if the new data we are writing has a shorter length than the exisiting data. Otherwise we just overwrite the data. This is a nifty little speed optimization to reduce memory allocations.
+				packet.removeAll(keepCapacity: true)
+			}
+			for j in 0..<range.length
+			{
+				if j >= packet.count
 				{
 					packet.append(bytes.memory)
-					bytes = bytes.successor()
 				}
+				else
+				{
+					packet[j] = bytes.memory
+				}
+				bytes = bytes.successor()
 			}
 		}
 		for (i, peer) in peers.filter({ peerIDs.contains($0.peer) }).enumerate()
@@ -196,6 +214,7 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 		}
 		peers.append((peer: peer, state: .Connecting, input: inputStream, output: outputStream, writeLock: NSCondition()))
 		delegate?.session(self, peer: peer, didChangeState: .Connecting)
+		NSNotificationCenter.defaultCenter().postNotificationName(MGSession.sessionPeerStateUpdatedNotification, object: self)
 	}
 	
 	///  Finalizes the connection to the peer.
@@ -218,10 +237,11 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 		peers[index].output.delegate = self
 		peers[index].state = .Connected
 		delegate?.session(self, peer: peers[index].peer, didChangeState: peers[index].state)
+		NSNotificationCenter.defaultCenter().postNotificationName(MGSession.sessionPeerStateUpdatedNotification, object: self)
 	}
 	///  Rejects the connection to the peer.
 	///
-	///  - parameter peer: The peer to reject teh connection to.
+	///  - parameter peer: The peer to reject the connection to.
 	///  - throws: A peer not found error if the peer passed couldn't be found.
 	internal func rejectConnectionToPeer(peer: MGPeerID) throws
 	{
@@ -286,12 +306,7 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 		{
 			lostPeer(i)
 		}
-		guard peers.count != 0
-		else
-		{
-			return
-		}
-		disconnect()
+		peers.removeAll()
 	}
 }
 // MARK: - Stream handlers.
@@ -302,7 +317,7 @@ extension MGSession : NSStreamDelegate
 		switch eventCode
 		{
 		case NSStreamEvent.OpenCompleted:
-			streamCompletedOpening(aStream)
+			MGDebugLog("Session's stream completed opening. Ignoring notification.")
 			break
 		case NSStreamEvent.HasBytesAvailable:
 			streamHasBytes(aStream)
@@ -311,11 +326,12 @@ extension MGSession : NSStreamDelegate
 			streamHasSpace(aStream)
 			break
 		case NSStreamEvent.ErrorOccurred, NSStreamEvent.EndEncountered:
-			print("Stream error \(aStream.streamError)")
+			MGLog("Stream error: \(aStream.streamError)")
+			MGDebugLog("A stream error occurred on \(aStream) with error \(aStream.streamError) with status \(aStream.streamStatus)")
 			streamEncounteredEnd(aStream)
 			break
 		case NSStreamEvent.None:
-			print("Stream status \(aStream.streamStatus)") // Who knows what is happening here.
+			MGDebugLog("Stream status \(aStream.streamStatus)") // Who knows what is happening here.
 			assertionFailure("Debugging a None stream event.")
 			break
 		default:
@@ -326,23 +342,6 @@ extension MGSession : NSStreamDelegate
 // MARK: - Private helpers
 extension MGSession
 {
-	private func streamCompletedOpening(stream: NSStream)
-	{
-		for var peer in peers
-		{
-			guard stream == peer.input || stream == peer.output
-			else { continue }
-			if (peer.input.streamStatus == .Open || peer.input.streamStatus == .Reading) &&
-				(peer.output.streamStatus == .Open || peer.output.streamStatus == .Writing)
-			{
-				peer.state = .Connected
-				delegate?.session(self, peer: peer.peer, didChangeState: peer.state)
-				NSNotificationCenter.defaultCenter().postNotificationName(MGSession.sessionPeerStateUpdatedNotification, object: self, userInfo: nil)
-				return
-			}
-		}
-		assertionFailure("Could not find the peer whose stream was opened. Invalid state.")
-	}
 	private func streamHasBytes(stream: NSStream)
 	{
 		guard let inputStream = stream as? NSInputStream
@@ -356,11 +355,11 @@ extension MGSession
 			}
 			let data = NSMutableData()
 			var buf = [UInt8]()
-			buf.reserveCapacity(packetSize)
+			buf.reserveCapacity(MGSession.packetSize)
 			var len = 0
 			while inputStream.hasBytesAvailable
 			{
-				len = inputStream.read(&buf, maxLength: packetSize)
+				len = inputStream.read(&buf, maxLength: MGSession.packetSize)
 				if len > 0
 				{
 					data.appendBytes(buf, length: len)
@@ -411,7 +410,7 @@ extension MGSession
 		peers[peerIndex].output.close()
 		peers[peerIndex].state = .NotConnected
 		delegate?.session(self, peer: peers[peerIndex].peer, didChangeState: peers[peerIndex].state)
-		NSNotificationCenter.defaultCenter().postNotificationName(MGSession.sessionPeerStateUpdatedNotification, object: self, userInfo: nil)
+		NSNotificationCenter.defaultCenter().postNotificationName(MGSession.sessionPeerStateUpdatedNotification, object: self)
 		peers.removeAtIndex(peerIndex)
 	}
 }

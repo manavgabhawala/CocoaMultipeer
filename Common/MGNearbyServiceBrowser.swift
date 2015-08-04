@@ -30,7 +30,7 @@ import Foundation
 	
 	private let delegateHelper : MGNearbyServiceBrowserHelper
 	
-	private var pendingInvites = [MGPeerID: MGSession]()
+	private var pendingInvites = [MGNearbyConnectionResolver]()
 	
 	/// Initializes the nearby service browser object with the TCP connection protocol.
 	/// - Parameter peer: The local peer ID for this instance.
@@ -68,7 +68,8 @@ import Foundation
 	public func startBrowsingForPeers()
 	{
 		server.stop()
-		print("Attempting to start server")
+		MGDebugLog("Attempting to start server")
+		MGLog("Attempting to start server")
 		server.startMonitoring()
 		server.publishWithOptions(NSNetServiceOptions.ListenForConnections)
 	}
@@ -110,12 +111,12 @@ import Foundation
 		{
 			throw MultipeerError.ConnectionAttemptFailed
 		}
-		pendingInvites[peerID] = session
 		try session.initialConnectToPeer(peerID, inputStream: input!, outputStream: output!)
-		delegateHelper.connectToPeer(peerID, inputStream: input!, outputStream: output!)
+		let newInvite = MGNearbyConnectionResolver(ruler: self, inputStream: input!, outputStream: output!, remotePeer: peerID, session: session)
+		pendingInvites.append(newInvite)
 		MGLog("Inviting new peer to session")
 		MGDebugLog("Inviting new peer \(peerID) to session \(session)")
-		availableServices.removeValueForKey(service)
+		delegate?.browser(self, lostPeer: availableServices.removeValueForKey(service)!)
 	}
 }
 
@@ -219,24 +220,8 @@ extension MGNearbyServiceBrowser
 	private func netService(sender: NSNetService, didAcceptConnectionWithInputStream inputStream: NSInputStream, outputStream: NSOutputStream)
 	{
 		stopBrowsingForPeers()
-		delegateHelper.acceptConnection(inputStream, outputStream: outputStream)
-//		delegate?.browser(self, didReceiveInvitationFromPeer: peer, invitationHandler: { (accept, session) in
-//			if (!accept)
-//			{
-//				// Reject the connection.
-//				outputStream.open()
-//				inputStream.open()
-//				outputStream.close()
-//				inputStream.close()
-//				self.startBrowsingForPeers()
-//			}
-//			else
-//			{
-//				// Accept the connection and stop looking for more peers to connect to.
-//				self.stopBrowsingForPeers()
-//				
-//			}
-//		})
+		let newInvite = MGNearbyConnectionResolver(ruler: self, inputStream: inputStream, outputStream: outputStream)
+		pendingInvites.append(newInvite)
 	}
 	private func netService(sender: NSNetService, didUpdateTXTRecordData data: NSData)
 	{
@@ -344,22 +329,30 @@ extension MGNearbyServiceBrowserHelper : NSNetServiceDelegate
 		ruler?.netService(sender, didUpdateTXTRecordData: data)
 	}
 }
-
+/*
 extension MGNearbyServiceBrowserHelper : NSStreamDelegate
 {
 	private func connectToPeer(peer: MGPeerID, inputStream: NSInputStream, outputStream: NSOutputStream)
 	{
 		acceptConnection(inputStream, outputStream: outputStream)
 		remotePeer = peer
-		// HACK: - Do a fake read so that the input stream force opens.
-		var bytes = [UInt8]()
-		bytes.reserveCapacity(10)
-		let len = inputStream.read(&bytes, maxLength: 10)
-		MGDebugLog("Hacked a fake read of length \(len) and now the input stream's isAlive is set to: \(inputStream.isAlive)")
-		sendHandshake()
+		MGDebugLog("Faking read and writes to jump start the streams")
+		
+		if outputStream.hasSpaceAvailable
+		{
+			outputStream.write([], maxLength: 0)
+		}
+		var buf = [UInt8]()
+		if inputStream.hasBytesAvailable
+		{
+			inputStream.read(&buf, maxLength: 0)
+		}
 	}
 	private func acceptConnection(inputStream: NSInputStream, outputStream: NSOutputStream)
 	{
+		remotePeer = nil // Undo any previous remote attempts.
+		openStreamsCount = 0
+		
 		self.inputStream = inputStream
 		self.outputStream = outputStream
 		
@@ -370,8 +363,6 @@ extension MGNearbyServiceBrowserHelper : NSStreamDelegate
 		self.outputStream!.delegate = self
 		self.outputStream!.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
 		self.outputStream!.open()
-		
-		remotePeer = nil // Undo any previous remote attempts.
 	}
 	@objc private func stream(aStream: NSStream, handleEvent eventCode: NSStreamEvent)
 	{
@@ -381,12 +372,13 @@ extension MGNearbyServiceBrowserHelper : NSStreamDelegate
 			MGLog("Opened new stream")
 			MGDebugLog("Opened new stream")
 			++openStreamsCount
-			// TODO: Remove me.
-			if openStreamsCount == 2
+			guard openStreamsCount == 2
+			else
 			{
-				MGLog("Both streams opened.")
+				break
 			}
-			guard let _ = remotePeer where openStreamsCount == 2
+			MGLog("Both streams opened.")
+			guard remotePeer != nil
 			else
 			{
 				break
@@ -404,70 +396,10 @@ extension MGNearbyServiceBrowserHelper : NSStreamDelegate
 			guard let JSON = readDataFromStream(input)
 			else
 			{
-				MGDebugLog("Recieved invalid data. Closing up connection to prevent security vulenrabilities.")
-				closeConnection()
+				MGDebugLog("No JSON found. Throwing away garbage data.")
 				return
 			}
-			if let name = JSON["n"] as? String
-			{
-				let peer = MGPeerID(displayName: name)
-				MGDebugLog("Recieved an invitation from peer \(peer). Asking for user input.")
-				MGLog("Recieved new invitation")
-				ruler?.delegate?.browser(ruler!, didReceiveInvitationFromPeer: peer, invitationHandler: { accept, session in
-					guard let output = self.outputStream, let input = self.inputStream where input.isAlive && output.isAlive
-					else
-					{
-						self.closeConnection()
-						return
-					}
-					defer
-					{
-						self.sendAckPacket(accept)
-					}
-					guard accept
-					else
-					{
-						self.closeConnection()
-						return
-					}
-					do
-					{
-						try session.initialConnectToPeer(peer, inputStream: input, outputStream: output)
-						try session.finalizeConnectionToPeer(peer)
-					}
-					catch
-					{
-						MGDebugLog("Failed to connect to peer with error \(error)")
-						MGLog("Connection attempt failed")
-						self.closeConnection()
-					}
-				})
-			}
-			else if let accepted = JSON["ack"] as? Bool, let remote = remotePeer
-			{
-				do
-				{
-					MGLog("Recievied acknowledge packet")
-					if accepted
-					{
-						MGDebugLog("Peer \(remote) accepted the connection attempt.")
-						try ruler?.pendingInvites.removeValueForKey(remote)?.finalizeConnectionToPeer(remote)
-					}
-					else
-					{
-						MGDebugLog("Peer \(remote) declined the connection attempt.")
-						try ruler?.pendingInvites.removeValueForKey(remote)?.rejectConnectionToPeer(remote)
-					}
-				}
-				catch
-				{
-					closeConnection()
-				}
-			}
-			else
-			{
-				MGDebugLog("Recieved unknown data packet before authentication: \(JSON)")
-			}
+			parseJSON(JSON)
 			break
 		case NSStreamEvent.HasSpaceAvailable:
 			MGDebugLog("Stream has space available to write data.")
@@ -497,7 +429,10 @@ extension MGNearbyServiceBrowserHelper : NSStreamDelegate
 		{
 			self.ruler?.pendingInvites.removeValueForKey(remote)
 		}
-		self.ruler?.startBrowsingForPeers()
+		else
+		{
+			self.ruler?.startBrowsingForPeers()
+		}
 	}
 	private func sendSmallDataPacket(data: NSData)
 	{
@@ -533,15 +468,43 @@ extension MGNearbyServiceBrowserHelper : NSStreamDelegate
 	{
 		let data = try! NSJSONSerialization.dataWithJSONObject(["n" : ruler?.myPeerID.displayName ?? ""], options: [])
 		sendSmallDataPacket(data)
+		dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), {
+			var buf = [UInt8]()
+			buf.reserveCapacity(MGSession.packetSize)
+			while self.inputStream!.hasBytesAvailable
+			{
+				let len = self.inputStream!.read(&buf, maxLength: MGSession.packetSize)
+				guard len >= 0
+				else
+				{
+					sleep(3)
+					continue
+				}
+				guard let JSON = self.parseData(NSData(bytes: buf, length: len))
+				else
+				{
+					continue
+				}
+				self.parseJSON(JSON)
+				break
+			}
+			
+		})
 	}
 	private func sendAckPacket(acknowledge: Bool)
 	{
+		MGDebugLog("Sending acknowledge packet. Acknowledged? \(acknowledge)")
 		let ackPacket = ["ack": acknowledge]
 		let data = try! NSJSONSerialization.dataWithJSONObject(ackPacket, options: [])
 		sendSmallDataPacket(data)
 	}
 	private func readDataFromStream(stream: NSInputStream) -> [NSObject: AnyObject]?
 	{
+		guard stream.hasBytesAvailable && stream.streamStatus != .AtEnd
+		else
+		{
+			return nil
+		}
 		let data = NSMutableData()
 		var bytes = [UInt8]()
 		bytes.reserveCapacity(255)
@@ -552,10 +515,15 @@ extension MGNearbyServiceBrowserHelper : NSStreamDelegate
 			else
 			{
 				// FIXME: Silent failure.
-				fatalError("Read 0 bytes from stream.")
+				//fatalError("Read 0 bytes from stream.")
+				break
 			}
 			data.appendBytes(bytes, length: len)
 		}
+		return parseData(data)
+	}
+	private func parseData(data: NSData) -> [NSObject: AnyObject]?
+	{
 		do
 		{
 			let JSON = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [NSObject: AnyObject]
@@ -566,5 +534,365 @@ extension MGNearbyServiceBrowserHelper : NSStreamDelegate
 			return nil
 		}
 	}
+	private func parseJSON(JSON: [NSObject: AnyObject])
+	{
+		if let name = JSON["n"] as? String
+		{
+			let peer = MGPeerID(displayName: name)
+			MGDebugLog("Recieved an invitation from peer \(peer). Asking for user input.")
+			MGLog("Recieved new invitation")
+			ruler?.delegate?.browser(ruler!, didReceiveInvitationFromPeer: peer, invitationHandler: { accept, session in
+				guard let output = self.outputStream, let input = self.inputStream where input.isAlive && output.isAlive
+					else
+				{
+					MGDebugLog("Could not finalize connection due to internal state. Force closing so that the other side doesn't keep waiting for a response.")
+					MGLog("Connection establishing failed. Closing connection.")
+					self.closeConnection()
+					return
+				}
+				self.sendAckPacket(accept)
+				guard accept
+					else
+				{
+					// We didn't accept the connection. Close it.
+					self.closeConnection()
+					return
+				}
+				do
+				{
+					try session.initialConnectToPeer(peer, inputStream: input, outputStream: output)
+					try session.finalizeConnectionToPeer(peer)
+				}
+				catch
+				{
+					MGDebugLog("Failed to connect to peer with error \(error)")
+					MGLog("Connection attempt failed")
+					self.closeConnection()
+				}
+			})
+		}
+		else if let accepted = JSON["ack"] as? Bool, let remote = remotePeer
+		{
+			do
+			{
+				MGLog("Recievied acknowledge packet")
+				if accepted
+				{
+					MGDebugLog("Peer \(remote) accepted the connection attempt.")
+					try ruler?.pendingInvites.removeValueForKey(remote)?.finalizeConnectionToPeer(remote)
+				}
+				else
+				{
+					MGDebugLog("Peer \(remote) declined the connection attempt.")
+					try ruler?.pendingInvites.removeValueForKey(remote)?.rejectConnectionToPeer(remote)
+				}
+			}
+			catch
+			{
+				closeConnection()
+			}
+		}
+		else
+		{
+			MGDebugLog("Recieved unknown data packet before authentication: \(JSON)")
+			MGDebugLog("Recieved invalid data. Closing up connection to for security reasons.")
+			closeConnection()
+		}
+	}
+}*/
+
+@objc private class MGNearbyConnectionResolver: NSObject
+{
+	var openStreamsCount = 0
 	
+	var remotePeer: MGPeerID?
+	var session: MGSession?
+	
+	var inputStream: NSInputStream
+	var outputStream: NSOutputStream
+	
+	weak var ruler: MGNearbyServiceBrowser?
+	
+	let writeLock = NSCondition()
+	
+	private init(ruler: MGNearbyServiceBrowser, inputStream: NSInputStream, outputStream: NSOutputStream)
+	{
+		self.ruler = ruler
+		self.inputStream = inputStream
+		self.outputStream = outputStream
+		super.init()
+		setup()
+	}
+	
+	private init(ruler: MGNearbyServiceBrowser, inputStream: NSInputStream, outputStream: NSOutputStream, remotePeer: MGPeerID, session: MGSession)
+	{
+		self.ruler = ruler
+		self.outputStream = outputStream
+		self.inputStream = inputStream
+		self.remotePeer = remotePeer
+		self.session = session
+		super.init()
+		setup()
+	}
+	
+	private func setup()
+	{
+		self.inputStream.delegate = self
+		self.outputStream.delegate = self
+		
+		self.inputStream.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
+		self.outputStream.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
+		
+		self.inputStream.open()
+		self.outputStream.open()
+	}
+
 }
+extension MGNearbyConnectionResolver : NSStreamDelegate
+{
+	@objc private func stream(aStream: NSStream, handleEvent eventCode: NSStreamEvent)
+	{
+		switch eventCode
+		{
+		case NSStreamEvent.OpenCompleted:
+			MGLog("Opened new stream")
+			MGDebugLog("Opened new stream")
+			++openStreamsCount
+			guard openStreamsCount == 2
+			else
+			{
+				break
+			}
+			MGLog("Both streams opened.")
+			guard remotePeer != nil
+			else
+			{
+				break
+			}
+			MGLog("Opened all streams sending handshake")
+			MGDebugLog("Opened all streams sending handshake")
+			sendHandshake()
+			break
+		case NSStreamEvent.HasBytesAvailable:
+			guard let input = aStream as? NSInputStream
+				else
+			{
+				fatalError("Expected only input streams to have bytes avaialble")
+			}
+			guard let JSON = readDataFromStream(input)
+				else
+			{
+				MGDebugLog("No JSON found. Throwing away garbage data.")
+				return
+			}
+			parseJSON(JSON)
+			break
+		case NSStreamEvent.HasSpaceAvailable:
+			MGDebugLog("Stream has space available to write data.")
+			break
+		case NSStreamEvent.ErrorOccurred, NSStreamEvent.EndEncountered:
+			MGLog("Stream error \(aStream.streamError)")
+			MGDebugLog("Stream \(aStream) encountered an error \(aStream.streamError?.localizedDescription) with NSError object \(aStream.streamError) and stream's status is \(aStream.streamStatus)")
+			closeConnection()
+			break
+		case NSStreamEvent.None:
+			MGLog("Stream status \(aStream.streamStatus)") // Who knows what is happening here.
+			MGDebugLog("Stream status \(aStream.streamStatus)") // Who knows what is happening here.
+			assertionFailure("Debugging a None stream event.")
+			break
+		default:
+			break
+		}
+	}
+	
+	private func closeConnection()
+	{
+		MGDebugLog("An error occurred closing the connection.")
+		self.inputStream.delegate = nil
+		self.outputStream.delegate = nil
+		self.outputStream.removeFromRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
+		self.inputStream.removeFromRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
+		self.outputStream.close()
+		self.inputStream.close()
+		self.ruler?.pendingInvites.removeElement(self)
+		if remotePeer == nil
+		{
+			self.ruler?.startBrowsingForPeers()
+		}
+	}
+	private func sendSmallDataPacket(data: NSData)
+	{
+		
+		dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),  {
+			var bytes = [UInt8]()
+			bytes.reserveCapacity(data.length)
+			var dataBytes = UnsafePointer<UInt8>(data.bytes)
+			for _ in 0..<data.length
+			{
+				bytes.append(dataBytes.memory)
+				dataBytes = dataBytes.successor()
+			}
+			assert(bytes.count == data.length)
+			self.writeLock.lock()
+			while !self.outputStream.hasSpaceAvailable
+			{
+				self.writeLock.wait()
+			}
+			defer { self.writeLock.unlock() }
+			let len = self.outputStream.write(bytes, maxLength: data.length)
+			guard len > 0
+			else
+			{
+				if let peer = self.remotePeer
+				{
+					do
+					{
+						try self.session?.rejectConnectionToPeer(peer)
+					}
+					catch
+					{
+						MGLog("Error \(error)")
+						MGDebugLog("An error occurred for remote \(peer) with error \(error)")
+					}
+				}
+				return
+			}
+		})
+	}
+	private func sendHandshake()
+	{
+		let data = try! NSJSONSerialization.dataWithJSONObject(["n" : ruler?.myPeerID.displayName ?? ""], options: [])
+		sendSmallDataPacket(data)
+		dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), {
+			var buf = [UInt8]()
+			buf.reserveCapacity(MGSession.packetSize)
+			while self.inputStream.hasBytesAvailable
+			{
+				let len = self.inputStream.read(&buf, maxLength: MGSession.packetSize)
+				guard len >= 0
+					else
+				{
+					sleep(3)
+					continue
+				}
+				guard let JSON = self.parseData(NSData(bytes: buf, length: len))
+					else
+				{
+					continue
+				}
+				self.parseJSON(JSON)
+				break
+			}
+			
+		})
+	}
+	private func sendAckPacket(acknowledge: Bool)
+	{
+		MGDebugLog("Sending acknowledge packet. Acknowledged? \(acknowledge)")
+		let ackPacket = ["ack": acknowledge]
+		let data = try! NSJSONSerialization.dataWithJSONObject(ackPacket, options: [])
+		sendSmallDataPacket(data)
+	}
+	private func readDataFromStream(stream: NSInputStream) -> [NSObject: AnyObject]?
+	{
+		guard stream.hasBytesAvailable && stream.streamStatus != .AtEnd
+			else
+		{
+			return nil
+		}
+		let data = NSMutableData()
+		var bytes = [UInt8]()
+		bytes.reserveCapacity(255)
+		while stream.hasBytesAvailable
+		{
+			let len = stream.read(&bytes, maxLength: 255)
+			guard len > 0
+				else
+			{
+				// FIXME: Silent failure.
+				//fatalError("Read 0 bytes from stream.")
+				break
+			}
+			data.appendBytes(bytes, length: len)
+		}
+		return parseData(data)
+	}
+	private func parseData(data: NSData) -> [NSObject: AnyObject]?
+	{
+		do
+		{
+			let JSON = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [NSObject: AnyObject]
+			return JSON
+		}
+		catch
+		{
+			return nil
+		}
+	}
+	private func parseJSON(JSON: [NSObject: AnyObject])
+	{
+		if let name = JSON["n"] as? String
+		{
+			let peer = MGPeerID(displayName: name)
+			MGDebugLog("Recieved an invitation from peer \(peer). Asking for user input.")
+			MGLog("Recieved new invitation")
+			ruler?.delegate?.browser(ruler!, didReceiveInvitationFromPeer: peer, invitationHandler: { accept, session in
+				guard self.inputStream.isAlive && self.outputStream.isAlive
+				else
+				{
+					MGDebugLog("Could not finalize connection due to internal state. Force closing so that the other side doesn't keep waiting for a response.")
+					MGLog("Connection establishing failed. Closing connection.")
+					self.closeConnection()
+					return
+				}
+				do
+				{
+					self.sendAckPacket(accept)
+					guard accept
+					else
+					{
+						// We didn't accept the connection. Close it.
+						self.closeConnection()
+						return
+					}
+					try session.initialConnectToPeer(peer, inputStream: self.inputStream, outputStream: self.outputStream)
+					try session.finalizeConnectionToPeer(peer)
+				}
+				catch
+				{
+					MGDebugLog("Failed to connect to peer with error \(error)")
+					MGLog("Connection attempt failed")
+					self.closeConnection()
+				}
+			})
+		}
+		else if let accepted = JSON["ack"] as? Bool, let remote = remotePeer, let session = session
+		{
+			do
+			{
+				MGLog("Recievied acknowledge packet")
+				if accepted
+				{
+					MGDebugLog("Peer \(remote) accepted the connection attempt.")
+					try session.finalizeConnectionToPeer(remote)
+				}
+				else
+				{
+					MGDebugLog("Peer \(remote) declined the connection attempt.")
+					try session.rejectConnectionToPeer(remote)
+				}
+			}
+			catch
+			{
+				closeConnection()
+			}
+		}
+		else
+		{
+			MGDebugLog("Recieved unknown data packet before authentication: \(JSON)")
+			MGDebugLog("Recieved invalid data. Closing up connection to for security reasons.")
+			closeConnection()
+		}
+	}
+}
+

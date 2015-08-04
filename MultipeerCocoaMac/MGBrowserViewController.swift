@@ -96,10 +96,13 @@ public class MGBrowserViewController: NSViewController
 		connectButton.action = "connect:"
 		cancelButton.target = self
 		cancelButton.action = "cancel:"
+		finishButton.target = self
+		finishButton.action = "finish:"
 		tableView.setDelegate(self)
 		tableView.setDataSource(self)
 		updateInfoLabel()
 		connectButton.enabled = false
+		NSNotificationCenter.defaultCenter().addObserver(self, selector: "sessionUpdated:", name: MGSession.sessionPeerStateUpdatedNotification, object: session)
 	}
 	public override func viewDidAppear()
 	{
@@ -109,7 +112,8 @@ public class MGBrowserViewController: NSViewController
 	{
 		browser.stopBrowsingForPeers()
 	}
-	@IBAction func connect(sender: NSButton)
+	// MARK: - Actions
+	func connect(sender: NSButton)
 	{
 		guard selectedRow != nil && selectedRow >= 0 && selectedRow < peers.count && session.connectedPeers.indexOf(peers[selectedRow!]) == nil
 		else
@@ -126,43 +130,78 @@ public class MGBrowserViewController: NSViewController
 			print(error)
 		}
 	}
-	@IBAction func cancel(sender: NSButton)
+	func cancel(sender: NSButton)
 	{
 		session.disconnect()
 		browser.stopBrowsingForPeers()
+		view.window!.sheetParent!.endSheet(view.window!, returnCode: NSModalResponseCancel)
+	}
+	func finish(sender: NSButton)
+	{
+		browser.stopBrowsingForPeers()
 		view.window!.sheetParent!.endSheet(view.window!, returnCode: NSModalResponseOK)
 	}
+	
 	func updateInfoLabel()
 	{
 		infoLabel.stringValue = "This device will appear as \(browser.myPeerID.displayName). You must connect to at least \(minimumPeers.peerText) and no more than \(maximumPeers.peerText)."
+	}
+	func sessionUpdated(notification: NSNotification)
+	{
+		if session.connectedPeers.filter ({
+			do
+			{
+				return try self.session.stateForPeer($0) == .Connected
+			}
+			catch
+			{
+				return false
+			}
+		}).count >= minimumPeers
+		{
+			finishButton.enabled = true
+		}
+		else
+		{
+			finishButton.enabled = false
+		}
+		dispatch_async(dispatch_get_main_queue(), {
+			self.tableView.reloadData()
+		})
 	}
 }
 extension MGBrowserViewController : NSTableViewDataSource, NSTableViewDelegate
 {
 	public func numberOfRowsInTableView(tableView: NSTableView) -> Int
 	{
-		return peers.count
+		return peers.count + session.connectedPeers.count
 	}
 	public func tableView(tableView: NSTableView, viewForTableColumn tableColumn: NSTableColumn?, row: Int) -> NSView?
 	{
+		let sessionCount = session.connectedPeers.count
 		if tableColumn?.identifier == "connection"
 		{
-			if (row >= 0 && row < peers.count)
+			let cellView = tableView.makeViewWithIdentifier("connection_cell", owner: self) as! NSTableCellView
+			if row >= 0 && row < sessionCount
 			{
-				let cellView = tableView.makeViewWithIdentifier("connection_cell", owner: self) as! NSTableCellView
-				cellView.textField!.stringValue = peers[row].displayName
+				cellView.textField!.stringValue = session.connectedPeers[row].displayName
+				return cellView
+			}
+			if (row >= sessionCount && row < peers.count + sessionCount)
+			{
+				cellView.textField!.stringValue = peers[row - sessionCount].displayName
 				return cellView
 			}
 			return nil
 		}
 		else if tableColumn?.identifier == "status"
 		{
-			if (row >= 0 && row < peers.count)
+			let cellView = tableView.makeViewWithIdentifier("status_cell", owner: self) as! NSTableCellView
+			if row >= 0 && row < sessionCount
 			{
-				let cellView = tableView.makeViewWithIdentifier("status_cell", owner: self) as! NSTableCellView
 				do
 				{
-					cellView.textField!.stringValue = try session.stateForPeer(peers[row]).description
+					cellView.textField!.stringValue = try session.stateForPeer(session.connectedPeers[row]).description
 				}
 				catch
 				{
@@ -170,7 +209,8 @@ extension MGBrowserViewController : NSTableViewDataSource, NSTableViewDelegate
 				}
 				return cellView
 			}
-			return nil
+			cellView.textField!.stringValue = ""
+			return cellView
 		}
 		fatalError("The table colum wasn't created.")
 	}
