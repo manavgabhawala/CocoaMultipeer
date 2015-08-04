@@ -24,6 +24,7 @@ class ViewController: UIViewController
 		session = MGSession(peer: peer)
 		session.delegate = self
 		browser = MGNearbyServiceBrowser(peer: peer, serviceType: "peer-demo")
+		textView.delegate = self
 	}
 	override func viewDidAppear(animated: Bool)
 	{
@@ -63,5 +64,28 @@ extension ViewController : MGSessionDelegate
 			return
 		}
 		textView.text = "\(textView.text)\n\(recievedText)"
+	}
+}
+extension ViewController : UITextViewDelegate
+{
+	func textView(textView: UITextView, shouldChangeTextInRange range: NSRange, replacementText text: String) -> Bool
+	{
+		if text == "\n"
+		{
+			guard let stringToSend = textView.text?.componentsSeparatedByString("\n").last
+			else
+			{
+				return true
+			}
+			do
+			{
+				try session.sendData(stringToSend.dataUsingEncoding(NSUTF8StringEncoding)!, toPeers: session.connectedPeers)
+			}
+			catch
+			{
+				print(error)
+			}
+		}
+		return true
 	}
 }

@@ -48,6 +48,9 @@
 		82CB0ED71B3B42C70092AFEB /* MultipeerCocoaiOS.h in Headers */ = {isa = PBXBuildFile; fileRef = 82CB0ED61B3B42C70092AFEB /* MultipeerCocoaiOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		82CB0EF31B3B42F50092AFEB /* MultipeerCocoaMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 82CB0EF21B3B42F50092AFEB /* MultipeerCocoaMac.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		82CB0F0F1B3B43200092AFEB /* MultipeerCocoaWatchOS.h in Headers */ = {isa = PBXBuildFile; fileRef = 82CB0F0E1B3B43200092AFEB /* MultipeerCocoaWatchOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		82E7D2681B70C39500C023D3 /* MGSessionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82E7D2671B70C39500C023D3 /* MGSessionDelegate.swift */; };
+		82E7D2691B70C39500C023D3 /* MGSessionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82E7D2671B70C39500C023D3 /* MGSessionDelegate.swift */; };
+		82E7D26A1B70C39500C023D3 /* MGSessionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82E7D2671B70C39500C023D3 /* MGSessionDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -128,6 +131,7 @@
 		82CB0F0C1B3B43200092AFEB /* MultipeerCocoaWatchOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MultipeerCocoaWatchOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		82CB0F0E1B3B43200092AFEB /* MultipeerCocoaWatchOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MultipeerCocoaWatchOS.h; sourceTree = "<group>"; };
 		82CB0F101B3B43200092AFEB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		82E7D2671B70C39500C023D3 /* MGSessionDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MGSessionDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -271,6 +275,7 @@
 				82192A0D1B63F3D00060267E /* MGNearbyServiceBrowserDelegate.swift */,
 				823F3E8B1B53B6A000A7B7F1 /* MultipeerError.swift */,
 				824854A41B48636C00B12925 /* MGSession.swift */,
+				82E7D2671B70C39500C023D3 /* MGSessionDelegate.swift */,
 				823F3E8F1B53D0E600A7B7F1 /* MGSessionState.swift */,
 			);
 			path = Common;
@@ -515,6 +520,7 @@
 				823F3E901B53D0E600A7B7F1 /* MGSessionState.swift in Sources */,
 				824854A51B48636C00B12925 /* MGSession.swift in Sources */,
 				824854A91B48662A00B12925 /* MGNearbyServiceBrowser.swift in Sources */,
+				82E7D2681B70C39500C023D3 /* MGSessionDelegate.swift in Sources */,
 				8283C8521B48806B0085868E /* Generics.swift in Sources */,
 				824854A11B485F6D00B12925 /* MGPeerID.swift in Sources */,
 				82192A0E1B63F3D00060267E /* MGNearbyServiceBrowserDelegate.swift in Sources */,
@@ -536,6 +542,7 @@
 				824854A21B485F6D00B12925 /* MGPeerID.swift in Sources */,
 				823F3E8D1B53B6A000A7B7F1 /* MultipeerError.swift in Sources */,
 				824854B11B48707700B12925 /* MGBrowserViewController.swift in Sources */,
+				82E7D2691B70C39500C023D3 /* MGSessionDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -551,6 +558,7 @@
 				824854A31B485F6D00B12925 /* MGPeerID.swift in Sources */,
 				823F3E8E1B53B6A000A7B7F1 /* MultipeerError.swift in Sources */,
 				824854B31B4870A600B12925 /* MGBrowserViewController.swift in Sources */,
+				82E7D26A1B70C39500C023D3 /* MGSessionDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

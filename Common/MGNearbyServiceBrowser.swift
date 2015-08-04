@@ -120,6 +120,75 @@ import Foundation
 	}
 }
 
+// MARK: - NetService Callbacks
+extension MGNearbyServiceBrowser
+{
+	private func netServiceDidPublish(sender: NSNetService)
+	{
+		assert(sender === server)
+		MGLog("Server started")
+		MGDebugLog("Server started and resolved name to \(sender.name)")
+		myPeerID.name = sender.name
+		browser.stop()
+		MGDebugLog("Attempting to browse for nearby devices")
+		browser.searchForServicesOfType(fullServiceType, inDomain: "")
+		delegate?.browserDidStartSuccessfully?(self)
+	}
+	private func netService(sender: NSNetService, didNotPublish errorDict: [String : NSNumber])
+	{
+		assert(sender === server)
+		MGLog("Server could not start")
+		MGDebugLog("Server could not start with error \(errorDict)")
+		delegate?.browser?(self, didNotStartBrowsingForPeers: errorDict)
+	}
+	private func netServiceDidStop(sender: NSNetService)
+	{
+		MGDebugLog("Server stopped")
+	}
+	private func netServiceDidResolveAddress(sender: NSNetService)
+	{
+		guard let peer = availableServices[sender]
+			else
+		{
+			let peer = MGPeerID(displayName: sender.name)
+			availableServices[sender] = peer
+			MGLog("Found new peer \(peer)")
+			MGDebugLog("Found new peer \(peer)")
+			delegate?.browser(self, foundPeer: availableServices[sender]!, withDiscoveryInfo: NSNetService.dictionaryWithTXTData(sender.TXTRecordData()))
+			return
+		}
+		MGLog("Updating peer's TXT dictionary")
+		MGDebugLog("Updating peer \(peer)'s dictionary")
+		delegate?.browser?(self, didUpdatePeer: peer, withDiscoveryInfo: NSNetService.dictionaryWithTXTData(sender.TXTRecordData()))
+	}
+	private func netService(sender: NSNetService, didNotResolve errorDict: [String : NSNumber])
+	{
+		guard let peer = availableServices[sender]
+			else
+		{
+			MGDebugLog("Could not \(sender.name) resolve with error \(errorDict)")
+			return
+		}
+		MGLog("Could not resolve the service")
+		MGDebugLog("Could not resolve the service with error \(errorDict)")
+		delegate?.browser?(self, couldNotResolvePeer: peer, withError: errorDict)
+	}
+	private func netService(sender: NSNetService, didAcceptConnectionWithInputStream inputStream: NSInputStream, outputStream: NSOutputStream)
+	{
+		stopBrowsingForPeers()
+		let newInvite = MGNearbyConnectionResolver(ruler: self, inputStream: inputStream, outputStream: outputStream)
+		pendingInvites.append(newInvite)
+	}
+	private func netService(sender: NSNetService, didUpdateTXTRecordData data: NSData)
+	{
+		guard let peer = availableServices[sender]
+			else
+		{
+			return
+		}
+		delegate?.browser?(self, didUpdatePeer: peer, withDiscoveryInfo: NSNetService.dictionaryWithTXTData(sender.TXTRecordData()))
+	}
+}
 
 // MARK: - Browser Callbacks
 extension MGNearbyServiceBrowser
@@ -164,75 +233,6 @@ extension MGNearbyServiceBrowser
 		delegate?.browser(self, lostPeer: peer)
 	}
 }
-// MARK: - NetService Callbacks
-extension MGNearbyServiceBrowser
-{
-	private func netServiceDidPublish(sender: NSNetService)
-	{
-		assert(sender === server)
-		MGLog("Server started")
-		MGDebugLog("Server started and resolved name to \(sender.name)")
-		myPeerID.name = sender.name
-		browser.stop()
-		MGDebugLog("Attempting to browse for nearby devices")
-		browser.searchForServicesOfType(fullServiceType, inDomain: "")
-		delegate?.browserDidStartSuccessfully?(self)
-	}
-	private func netService(sender: NSNetService, didNotPublish errorDict: [String : NSNumber])
-	{
-		assert(sender === server)
-		MGLog("Server could not start")
-		MGDebugLog("Server could not start with error \(errorDict)")
-		delegate?.browser?(self, didNotStartBrowsingForPeers: errorDict)
-	}
-	private func netServiceDidStop(sender: NSNetService)
-	{
-		MGDebugLog("Server stopped")
-	}
-	private func netServiceDidResolveAddress(sender: NSNetService)
-	{
-		guard let peer = availableServices[sender]
-		else
-		{
-			let peer = MGPeerID(displayName: sender.name)
-			availableServices[sender] = peer
-			MGLog("Found new peer \(peer)")
-			MGDebugLog("Found new peer \(peer)")
-			delegate?.browser(self, foundPeer: availableServices[sender]!, withDiscoveryInfo: NSNetService.dictionaryWithTXTData(sender.TXTRecordData()))
-			return
-		}
-		MGLog("Updating peer's TXT dictionary")
-		MGDebugLog("Updating peer \(peer)'s dictionary")
-		delegate?.browser?(self, didUpdatePeer: peer, withDiscoveryInfo: NSNetService.dictionaryWithTXTData(sender.TXTRecordData()))
-	}
-	private func netService(sender: NSNetService, didNotResolve errorDict: [String : NSNumber])
-	{
-		guard let peer = availableServices[sender]
-		else
-		{
-			MGDebugLog("Could not \(sender.name) resolve with error \(errorDict)")
-			return
-		}
-		MGLog("Could not resolve the service")
-		MGDebugLog("Could not resolve the service with error \(errorDict)")
-		delegate?.browser?(self, couldNotResolvePeer: peer, withError: errorDict)
-	}
-	private func netService(sender: NSNetService, didAcceptConnectionWithInputStream inputStream: NSInputStream, outputStream: NSOutputStream)
-	{
-		stopBrowsingForPeers()
-		let newInvite = MGNearbyConnectionResolver(ruler: self, inputStream: inputStream, outputStream: outputStream)
-		pendingInvites.append(newInvite)
-	}
-	private func netService(sender: NSNetService, didUpdateTXTRecordData data: NSData)
-	{
-		guard let peer = availableServices[sender]
-		else
-		{
-			return
-		}
-		delegate?.browser?(self, didUpdatePeer: peer, withDiscoveryInfo: NSNetService.dictionaryWithTXTData(sender.TXTRecordData()))
-	}
-}
 
 // MARK: - CustomStringConvertible
 extension MGNearbyServiceBrowser
@@ -261,7 +261,7 @@ extension MGNearbyServiceBrowser
 }
 
 // MARK: - 
-// MARK: - Helper
+// MARK: - NetServiceHelper
 /// This class is a helper to handle delegate callbacks privately.
 @objc private class MGNearbyServiceBrowserHelper : NSObject
 {
@@ -329,278 +329,9 @@ extension MGNearbyServiceBrowserHelper : NSNetServiceDelegate
 		ruler?.netService(sender, didUpdateTXTRecordData: data)
 	}
 }
-/*
-extension MGNearbyServiceBrowserHelper : NSStreamDelegate
-{
-	private func connectToPeer(peer: MGPeerID, inputStream: NSInputStream, outputStream: NSOutputStream)
-	{
-		acceptConnection(inputStream, outputStream: outputStream)
-		remotePeer = peer
-		MGDebugLog("Faking read and writes to jump start the streams")
-		
-		if outputStream.hasSpaceAvailable
-		{
-			outputStream.write([], maxLength: 0)
-		}
-		var buf = [UInt8]()
-		if inputStream.hasBytesAvailable
-		{
-			inputStream.read(&buf, maxLength: 0)
-		}
-	}
-	private func acceptConnection(inputStream: NSInputStream, outputStream: NSOutputStream)
-	{
-		remotePeer = nil // Undo any previous remote attempts.
-		openStreamsCount = 0
-		
-		self.inputStream = inputStream
-		self.outputStream = outputStream
-		
-		self.inputStream!.delegate = self
-		self.inputStream!.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
-		self.inputStream!.open()
-		
-		self.outputStream!.delegate = self
-		self.outputStream!.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
-		self.outputStream!.open()
-	}
-	@objc private func stream(aStream: NSStream, handleEvent eventCode: NSStreamEvent)
-	{
-		switch eventCode
-		{
-		case NSStreamEvent.OpenCompleted:
-			MGLog("Opened new stream")
-			MGDebugLog("Opened new stream")
-			++openStreamsCount
-			guard openStreamsCount == 2
-			else
-			{
-				break
-			}
-			MGLog("Both streams opened.")
-			guard remotePeer != nil
-			else
-			{
-				break
-			}
-			MGLog("Opened all streams sending handshake")
-			MGDebugLog("Opened all streams sending handshake")
-			sendHandshake()
-			break
-		case NSStreamEvent.HasBytesAvailable:
-			guard let input = aStream as? NSInputStream
-			else
-			{
-				fatalError("Expected only input streams to have bytes avaialble")
-			}
-			guard let JSON = readDataFromStream(input)
-			else
-			{
-				MGDebugLog("No JSON found. Throwing away garbage data.")
-				return
-			}
-			parseJSON(JSON)
-			break
-		case NSStreamEvent.HasSpaceAvailable:
-			MGDebugLog("Stream has space available to write data.")
-			break
-		case NSStreamEvent.ErrorOccurred, NSStreamEvent.EndEncountered:
-			MGLog("Stream error \(aStream.streamError)")
-			MGDebugLog("Stream \(aStream) encountered an error \(aStream.streamError?.localizedDescription) with NSError object \(aStream.streamError) and stream's status is \(aStream.streamStatus)")
-			closeConnection()
-			break
-		case NSStreamEvent.None:
-			MGLog("Stream status \(aStream.streamStatus)") // Who knows what is happening here.
-			MGDebugLog("Stream status \(aStream.streamStatus)") // Who knows what is happening here.
-			assertionFailure("Debugging a None stream event.")
-			break
-		default:
-			break
-		}
-	}
-	private func closeConnection()
-	{
-		MGDebugLog("An error occurred closing the connection.")
-		self.outputStream?.removeFromRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
-		self.inputStream?.removeFromRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
-		self.outputStream?.close()
-		self.inputStream?.close()
-		if let remote = remotePeer
-		{
-			self.ruler?.pendingInvites.removeValueForKey(remote)
-		}
-		else
-		{
-			self.ruler?.startBrowsingForPeers()
-		}
-	}
-	private func sendSmallDataPacket(data: NSData)
-	{
-		var bytes = [UInt8]()
-		bytes.reserveCapacity(data.length)
-		var dataBytes = UnsafePointer<UInt8>(data.bytes)
-		for _ in 0..<data.length
-		{
-			bytes.append(dataBytes.memory)
-			dataBytes = dataBytes.successor()
-		}
-		assert(bytes.count == data.length)
-		let len = outputStream!.write(bytes, maxLength: data.length)
-		guard len > 0
-		else
-		{
-			if remotePeer != nil
-			{
-				do
-				{
-					try ruler?.pendingInvites.removeValueForKey(remotePeer!)?.rejectConnectionToPeer(remotePeer!)
-				}
-				catch
-				{
-					MGLog("Error \(error)")
-					MGDebugLog("An error occurred for remote \(remotePeer!) with error \(error)")
-				}
-			}
-			return
-		}
-	}
-	private func sendHandshake()
-	{
-		let data = try! NSJSONSerialization.dataWithJSONObject(["n" : ruler?.myPeerID.displayName ?? ""], options: [])
-		sendSmallDataPacket(data)
-		dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), {
-			var buf = [UInt8]()
-			buf.reserveCapacity(MGSession.packetSize)
-			while self.inputStream!.hasBytesAvailable
-			{
-				let len = self.inputStream!.read(&buf, maxLength: MGSession.packetSize)
-				guard len >= 0
-				else
-				{
-					sleep(3)
-					continue
-				}
-				guard let JSON = self.parseData(NSData(bytes: buf, length: len))
-				else
-				{
-					continue
-				}
-				self.parseJSON(JSON)
-				break
-			}
-			
-		})
-	}
-	private func sendAckPacket(acknowledge: Bool)
-	{
-		MGDebugLog("Sending acknowledge packet. Acknowledged? \(acknowledge)")
-		let ackPacket = ["ack": acknowledge]
-		let data = try! NSJSONSerialization.dataWithJSONObject(ackPacket, options: [])
-		sendSmallDataPacket(data)
-	}
-	private func readDataFromStream(stream: NSInputStream) -> [NSObject: AnyObject]?
-	{
-		guard stream.hasBytesAvailable && stream.streamStatus != .AtEnd
-		else
-		{
-			return nil
-		}
-		let data = NSMutableData()
-		var bytes = [UInt8]()
-		bytes.reserveCapacity(255)
-		while stream.hasBytesAvailable
-		{
-			let len = stream.read(&bytes, maxLength: 255)
-			guard len > 0
-			else
-			{
-				// FIXME: Silent failure.
-				//fatalError("Read 0 bytes from stream.")
-				break
-			}
-			data.appendBytes(bytes, length: len)
-		}
-		return parseData(data)
-	}
-	private func parseData(data: NSData) -> [NSObject: AnyObject]?
-	{
-		do
-		{
-			let JSON = try NSJSONSerialization.JSONObjectWithData(data, options: []) as? [NSObject: AnyObject]
-			return JSON
-		}
-		catch
-		{
-			return nil
-		}
-	}
-	private func parseJSON(JSON: [NSObject: AnyObject])
-	{
-		if let name = JSON["n"] as? String
-		{
-			let peer = MGPeerID(displayName: name)
-			MGDebugLog("Recieved an invitation from peer \(peer). Asking for user input.")
-			MGLog("Recieved new invitation")
-			ruler?.delegate?.browser(ruler!, didReceiveInvitationFromPeer: peer, invitationHandler: { accept, session in
-				guard let output = self.outputStream, let input = self.inputStream where input.isAlive && output.isAlive
-					else
-				{
-					MGDebugLog("Could not finalize connection due to internal state. Force closing so that the other side doesn't keep waiting for a response.")
-					MGLog("Connection establishing failed. Closing connection.")
-					self.closeConnection()
-					return
-				}
-				self.sendAckPacket(accept)
-				guard accept
-					else
-				{
-					// We didn't accept the connection. Close it.
-					self.closeConnection()
-					return
-				}
-				do
-				{
-					try session.initialConnectToPeer(peer, inputStream: input, outputStream: output)
-					try session.finalizeConnectionToPeer(peer)
-				}
-				catch
-				{
-					MGDebugLog("Failed to connect to peer with error \(error)")
-					MGLog("Connection attempt failed")
-					self.closeConnection()
-				}
-			})
-		}
-		else if let accepted = JSON["ack"] as? Bool, let remote = remotePeer
-		{
-			do
-			{
-				MGLog("Recievied acknowledge packet")
-				if accepted
-				{
-					MGDebugLog("Peer \(remote) accepted the connection attempt.")
-					try ruler?.pendingInvites.removeValueForKey(remote)?.finalizeConnectionToPeer(remote)
-				}
-				else
-				{
-					MGDebugLog("Peer \(remote) declined the connection attempt.")
-					try ruler?.pendingInvites.removeValueForKey(remote)?.rejectConnectionToPeer(remote)
-				}
-			}
-			catch
-			{
-				closeConnection()
-			}
-		}
-		else
-		{
-			MGDebugLog("Recieved unknown data packet before authentication: \(JSON)")
-			MGDebugLog("Recieved invalid data. Closing up connection to for security reasons.")
-			closeConnection()
-		}
-	}
-}*/
 
+// MARK: -
+// MARK: - Connection Resolution Helper
 @objc private class MGNearbyConnectionResolver: NSObject
 {
 	var openStreamsCount = 0
@@ -640,14 +371,15 @@ extension MGNearbyServiceBrowserHelper : NSStreamDelegate
 		self.inputStream.delegate = self
 		self.outputStream.delegate = self
 		
-		self.inputStream.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
-		self.outputStream.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
+		self.inputStream.scheduleInRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+		self.outputStream.scheduleInRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
 		
 		self.inputStream.open()
 		self.outputStream.open()
 	}
 
 }
+// MARK: - NSStreamDelegate
 extension MGNearbyConnectionResolver : NSStreamDelegate
 {
 	@objc private func stream(aStream: NSStream, handleEvent eventCode: NSStreamEvent)
@@ -807,10 +539,8 @@ extension MGNearbyConnectionResolver : NSStreamDelegate
 		{
 			let len = stream.read(&bytes, maxLength: 255)
 			guard len > 0
-				else
+			else
 			{
-				// FIXME: Silent failure.
-				//fatalError("Read 0 bytes from stream.")
 				break
 			}
 			data.appendBytes(bytes, length: len)

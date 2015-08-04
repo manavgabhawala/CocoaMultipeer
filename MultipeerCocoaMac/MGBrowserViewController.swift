@@ -88,7 +88,7 @@ public class MGBrowserViewController: NSViewController
 		super.init(nibName: "MGBrowserViewController", bundle: NSBundle(forClass: MGBrowserViewController.self))
 		browser.delegate = self
 	}
-	
+	// MARK: - Lifecycle
 	public override func viewDidLoad()
 	{
 		super.viewDidLoad()
@@ -112,6 +112,7 @@ public class MGBrowserViewController: NSViewController
 	{
 		browser.stopBrowsingForPeers()
 	}
+	
 	// MARK: - Actions
 	func connect(sender: NSButton)
 	{
@@ -142,6 +143,7 @@ public class MGBrowserViewController: NSViewController
 		view.window!.sheetParent!.endSheet(view.window!, returnCode: NSModalResponseOK)
 	}
 	
+	//  MARK: - Model Updates
 	func updateInfoLabel()
 	{
 		infoLabel.stringValue = "This device will appear as \(browser.myPeerID.displayName). You must connect to at least \(minimumPeers.peerText) and no more than \(maximumPeers.peerText)."
@@ -170,6 +172,7 @@ public class MGBrowserViewController: NSViewController
 		})
 	}
 }
+// MARK: - Table view stuff
 extension MGBrowserViewController : NSTableViewDataSource, NSTableViewDelegate
 {
 	public func numberOfRowsInTableView(tableView: NSTableView) -> Int
@@ -216,7 +219,7 @@ extension MGBrowserViewController : NSTableViewDataSource, NSTableViewDelegate
 	}
 	public func tableViewSelectionDidChange(notification: NSNotification)
 	{
-		if tableView.selectedRow >= 0 && tableView.selectedRow < peers.count
+		if tableView.selectedRow >= session.connectedPeers.count && tableView.selectedRow < session.connectedPeers.count + peers.count
 		{
 			selectedRow = tableView.numberOfSelectedRows > 0 ? tableView.selectedRow : nil
 		}
@@ -224,9 +227,10 @@ extension MGBrowserViewController : NSTableViewDataSource, NSTableViewDelegate
 		{
 			selectedRow = nil
 		}
-		connectButton.enabled = selectedRow != nil && session.connectedPeers.indexOf(peers[selectedRow!]) == nil
+		connectButton.enabled = selectedRow != nil
 	}
 }
+// MARK: - Browser stuff
 extension MGBrowserViewController : MGNearbyServiceBrowserDelegate
 {
 	public func browserDidStartSuccessfully(browser: MGNearbyServiceBrowser)

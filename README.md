@@ -22,7 +22,7 @@ Note this framework is still under development and is not complete yet. Here's a
 - [x] Assertions and fatal errors for weird unusual circumstances so that you can trace the stack.
 - [x] Thread safety and non-blocking (through the use of delegates)
 - [x] iOS Browser and Advertieser UI which handles everything from accepting invitations to showing available connections.
-- [ ] Mac OS X Browser and Advertieser UI which handles everything from accepting invitations to showing available connections.
+- [x] Mac OS X Browser and Advertieser UI which handles everything from accepting invitations to showing available connections.
 - [ ] watchOS 2 Browser and Advertiser UI which handles everything from accepting invitations to showing available connections.
 - [ ] Example of how to use the frameworks
 - [ ] Test cases

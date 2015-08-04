@@ -166,10 +166,10 @@ extension MGBrowserTableViewController
 			catch
 			{
 				MGLog("Couldn't find peer. Refreshing.")
-				MGDebugLog("Attemtpting to connect to an unknown service. Removing teh listing and refreshing the view to recover. \(error)")
+				MGDebugLog("Attemtpting to connect to an unknown service. Removing the listing and refreshing the view to recover. \(error)")
 				self.availablePeers.removeAtIndex(indexPath.row)
 				// Couldn't find the peer so let's reload the table.
-				self.tableView.reloadData()
+				dispatch_async(dispatch_get_main_queue(), self.tableView.reloadData)
 			}
 		})
 	}

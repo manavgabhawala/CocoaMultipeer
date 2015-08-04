@@ -23,6 +23,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 	
 	func applicationDidFinishLaunching(aNotification: NSNotification) {
 		// Insert code here to initialize your application
+		session.delegate = self
 		if session.connectedPeers.count == 0
 		{
 			showConnections()

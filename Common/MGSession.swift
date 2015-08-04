@@ -8,24 +8,6 @@
 
 import Foundation
 
-@objc public protocol MGSessionDelegate
-{
-	///  Called when the state of a nearby peer changes. There are no guarantees about which thread this will be called on.
-	///
-	///  - Parameter session: The session that manages the nearby peer whose state changed.
-	///  - Parameter peerID:  The ID of the nearby peer whose state changed.
-	///  - Parameter state:   The new state of the nearby peer.
-	///
-	func session(session: MGSession, peer peerID: MGPeerID, didChangeState state: MGSessionState)
-	
-	///  Indicates that an NSData object has been received from a nearby peer. You can be assured that this will be called on the main thread.
-	///
-	///  - Parameter session: The session through which the data was received.
-	///  - Parameter data:    An object containing the received data.
-	///  - Parameter peerID:  The peer ID of the sender.
-	func session(session: MGSession, didReceiveData data: NSData, fromPeer peerID: MGPeerID)
-}
-
 /**
 #### Abstract:
 A MGSession facilitates communication among all peers in a multipeer
@@ -213,7 +195,7 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 			throw MultipeerError.ConnectionAttemptFailed
 		}
 		peers.append((peer: peer, state: .Connecting, input: inputStream, output: outputStream, writeLock: NSCondition()))
-		delegate?.session(self, peer: peer, didChangeState: .Connecting)
+		delegate?.session?(self, peer: peer, didChangeState: .Connecting)
 		NSNotificationCenter.defaultCenter().postNotificationName(MGSession.sessionPeerStateUpdatedNotification, object: self)
 	}
 	
@@ -236,9 +218,10 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 		peers[index].input.delegate = self
 		peers[index].output.delegate = self
 		peers[index].state = .Connected
-		delegate?.session(self, peer: peers[index].peer, didChangeState: peers[index].state)
+		delegate?.session?(self, peer: peers[index].peer, didChangeState: peers[index].state)
 		NSNotificationCenter.defaultCenter().postNotificationName(MGSession.sessionPeerStateUpdatedNotification, object: self)
 	}
+	
 	///  Rejects the connection to the peer.
 	///
 	///  - parameter peer: The peer to reject the connection to.
@@ -252,23 +235,6 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 		}
 		lostPeer(index)
 	}
-	
-//	internal func connectToPeer(peer: MGPeerID, inputStream: NSInputStream, outputStream: NSOutputStream)
-//	{
-//		assert(peers.count < MGSession.maximumAllowedPeers, "Attempting to add to many peers to the session. Currently, \(peers.count) peers exist. The maximum allowed number of peers is \(MGSession.maximumAllowedPeers)")
-//		
-//		inputStream.delegate = self
-//		inputStream.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
-//		
-//		outputStream.delegate = self
-//		outputStream.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
-//		
-//		peers.append((peer: peer, state: .Connecting, input: inputStream, output: outputStream, writeLock: NSCondition()))
-//		delegate?.session(self, peer: peer, didChangeState: .Connecting)
-//		
-//		inputStream.open()
-//		outputStream.open()
-//	}
 	
 	///  Use this function to introspect a peer and get its state.
 	///
@@ -370,7 +336,7 @@ extension MGSession
 				}
 			}
 			dispatch_async(dispatch_get_main_queue(), {
-				self.delegate?.session(self, didReceiveData: data, fromPeer: peer.peer)
+				self.delegate?.session?(self, didReceiveData: data, fromPeer: peer.peer)
 			})
 			return
 		}
@@ -409,7 +375,7 @@ extension MGSession
 		peers[peerIndex].input.close()
 		peers[peerIndex].output.close()
 		peers[peerIndex].state = .NotConnected
-		delegate?.session(self, peer: peers[peerIndex].peer, didChangeState: peers[peerIndex].state)
+		delegate?.session?(self, peer: peers[peerIndex].peer, didChangeState: peers[peerIndex].state)
 		NSNotificationCenter.defaultCenter().postNotificationName(MGSession.sessionPeerStateUpdatedNotification, object: self)
 		peers.removeAtIndex(peerIndex)
 	}
