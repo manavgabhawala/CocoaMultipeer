@@ -49,6 +49,10 @@ P.S. Hopefully I can add support for these features in the near future.
 
 Coming soon but it will be well documented.
 
+## License
+
+Licensed under the [Apache License](http://www.apache.org/licenses/LICENSE-2.0). See the LICENSE file for more details.
+
 ## Conclusion
 
 Want to contribute to this project? Make a pull request. Facing a problem? Report an issue. 

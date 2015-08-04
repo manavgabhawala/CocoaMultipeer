@@ -79,6 +79,7 @@ extension AppDelegate : MGSessionDelegate
 	func session(session: MGSession, peer peerID: MGPeerID, didChangeState state: MGSessionState)
 	{
 		print("State of \(peer) changed to \(state)")
+		
 	}
 	func session(session: MGSession, didReceiveData data: NSData, fromPeer peerID: MGPeerID)
 	{

@@ -24,6 +24,13 @@ import Foundation
 	///
 	optional func browserDidStartSuccessfully(browser: MGNearbyServiceBrowser)
 	
+	/// Called whenever the browser object stops searching for nearby services. Use this method call to delete the cache and clear any saved state about browsers so that the user does not see duplicate services when actually they all point to the same one.
+ 	///
+ 	///  - parameter browser: The browser object that stopped.
+ 	///
+	optional func browserStoppedSearching(browser: MGNearbyServiceBrowser)
+	
+	
 	/// Called when a nearby peer is found. The peer ID provided to this delegate method can be used to invite the nearby peer to join a session.
 	/// - Parameter browser: The browser object that found the nearby peer.
 	/// - Parameter peerID: The unique ID of the peer that was found.

@@ -74,6 +74,7 @@ public class MGBrowserViewController: NSViewController
 	
 	public init?(session: MGSession, browser: MGNearbyServiceBrowser)
 	{
+		precondition(session.myPeerID === browser.myPeerID, "The peer objects on the browser and session should match up. The fact that they are not pointing to the same MGPeerID object is a massive programming error and can result in undefined behavior.")
 		self.session = session
 		self.browser = browser
 		self.serviceName = browser.serviceType
@@ -128,7 +129,9 @@ public class MGBrowserViewController: NSViewController
 		}
 		catch
 		{
-			print(error)
+			// Get rid of the bad row and reload the table.
+			peers.removeAtIndex(selectedRow!)
+			dispatch_async(dispatch_get_main_queue(), tableView.reloadData)
 		}
 	}
 	func cancel(sender: NSButton)
@@ -150,16 +153,7 @@ public class MGBrowserViewController: NSViewController
 	}
 	func sessionUpdated(notification: NSNotification)
 	{
-		if session.connectedPeers.filter ({
-			do
-			{
-				return try self.session.stateForPeer($0) == .Connected
-			}
-			catch
-			{
-				return false
-			}
-		}).count >= minimumPeers
+		if session.connectedPeers.count >= minimumPeers
 		{
 			finishButton.enabled = true
 		}
@@ -177,17 +171,17 @@ extension MGBrowserViewController : NSTableViewDataSource, NSTableViewDelegate
 {
 	public func numberOfRowsInTableView(tableView: NSTableView) -> Int
 	{
-		return peers.count + session.connectedPeers.count
+		return peers.count + session.peers.count
 	}
 	public func tableView(tableView: NSTableView, viewForTableColumn tableColumn: NSTableColumn?, row: Int) -> NSView?
 	{
-		let sessionCount = session.connectedPeers.count
+		let sessionCount = session.peers.count
 		if tableColumn?.identifier == "connection"
 		{
 			let cellView = tableView.makeViewWithIdentifier("connection_cell", owner: self) as! NSTableCellView
 			if row >= 0 && row < sessionCount
 			{
-				cellView.textField!.stringValue = session.connectedPeers[row].displayName
+				cellView.textField!.stringValue = session.peers[row].peer.displayName
 				return cellView
 			}
 			if (row >= sessionCount && row < peers.count + sessionCount)
@@ -202,14 +196,7 @@ extension MGBrowserViewController : NSTableViewDataSource, NSTableViewDelegate
 			let cellView = tableView.makeViewWithIdentifier("status_cell", owner: self) as! NSTableCellView
 			if row >= 0 && row < sessionCount
 			{
-				do
-				{
-					cellView.textField!.stringValue = try session.stateForPeer(session.connectedPeers[row]).description
-				}
-				catch
-				{
-					cellView.textField!.stringValue = ""
-				}
+				cellView.textField!.stringValue = session.peers[row].state.description
 				return cellView
 			}
 			cellView.textField!.stringValue = ""
@@ -225,6 +212,10 @@ extension MGBrowserViewController : NSTableViewDataSource, NSTableViewDelegate
 		}
 		else
 		{
+			if peers.count == 0
+			{
+				dispatch_async(dispatch_get_main_queue(), tableView.reloadData)
+			}
 			selectedRow = nil
 		}
 		connectButton.enabled = selectedRow != nil
@@ -245,8 +236,8 @@ extension MGBrowserViewController : MGNearbyServiceBrowserDelegate
 	public func browser(browser: MGNearbyServiceBrowser, foundPeer peerID: MGPeerID, withDiscoveryInfo info: [String : String]?)
 	{
 		assert(browser === self.browser)
-		guard peerID != session.myPeerID && peerID != browser.myPeerID
-			else { return } // This should never happen but its better to check
+		guard peerID != session.myPeerID && peerID != browser.myPeerID && peers.indexOf(peerID) == nil
+		else { return } // This should never happen but its better to check
 		peers.append(peerID)
 		dispatch_async(dispatch_get_main_queue(), tableView.reloadData)
 	}
@@ -280,5 +271,10 @@ extension MGBrowserViewController : MGNearbyServiceBrowserDelegate
 		})
 		
 		
+	}
+	public func browserStoppedSearching(browser: MGNearbyServiceBrowser)
+	{
+		peers.removeAll()
+		selectedRow = nil
 	}
 }

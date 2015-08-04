@@ -143,7 +143,13 @@ extension MGNearbyServiceBrowser
 	}
 	private func netServiceDidStop(sender: NSNetService)
 	{
+		guard sender === server
+		else
+		{
+			return
+		}
 		MGDebugLog("Server stopped")
+		delegate?.browserStoppedSearching?(self)
 	}
 	private func netServiceDidResolveAddress(sender: NSNetService)
 	{
@@ -209,14 +215,20 @@ extension MGNearbyServiceBrowser
 		{
 			return
 		}
-		MGLog("Found new peer \(service.name)")
-		MGDebugLog("Found new peer \(service.name)")
-		MGDebugLog("Attempting to resolve \(service.name) with domain \(service.domain) and type \(service.type)")
-		service.delegate = delegateHelper
-		service.resolveWithTimeout(1.0)
-		let peer = MGPeerID(displayName: service.name)
-		availableServices[service] = peer
-		delegate?.browser(self, foundPeer: peer, withDiscoveryInfo: NSNetService.dictionaryWithTXTData(service.TXTRecordData()))
+		guard let existing = availableServices[service]
+		else
+		{
+			MGLog("Found new peer \(service.name)")
+			MGDebugLog("Found new peer \(service.name)")
+			MGDebugLog("Attempting to resolve \(service.name) with domain \(service.domain) and type \(service.type)")
+			service.delegate = delegateHelper
+			service.resolveWithTimeout(0.0)
+			let peer = MGPeerID(displayName: service.name)
+			availableServices[service] = peer
+			delegate?.browser(self, foundPeer: peer, withDiscoveryInfo: NSNetService.dictionaryWithTXTData(service.TXTRecordData()))
+			return
+		}
+		delegate?.browser?(self, didUpdatePeer: existing, withDiscoveryInfo: NSNetService.dictionaryWithTXTData(service.TXTRecordData()))
 	}
 	
 	private func netServiceBrowser(browser: NSNetServiceBrowser, didRemoveService service: NSNetService, moreComing: Bool)
@@ -286,12 +298,10 @@ extension MGNearbyServiceBrowserHelper : NSNetServiceBrowserDelegate
 	{
 		ruler?.netServiceBrowser(browser, didNotSearch: errorDict)
 	}
-	
 	@objc func netServiceBrowser(browser: NSNetServiceBrowser, didFindService service: NSNetService, moreComing: Bool)
 	{
 		ruler?.netServiceBrowser(browser, didFindService: service, moreComing: moreComing)
 	}
-	
 	@objc func netServiceBrowser(browser: NSNetServiceBrowser, didRemoveService service: NSNetService, moreComing: Bool)
 	{
 		ruler?.netServiceBrowser(browser, didRemoveService: service, moreComing: moreComing)
@@ -424,33 +434,40 @@ extension MGNearbyConnectionResolver : NSStreamDelegate
 			break
 		case NSStreamEvent.ErrorOccurred, NSStreamEvent.EndEncountered:
 			MGLog("Stream error \(aStream.streamError)")
-			MGDebugLog("Stream \(aStream) encountered an error \(aStream.streamError?.localizedDescription) with NSError object \(aStream.streamError) and stream's status is \(aStream.streamStatus)")
+			MGDebugLog("Stream \(aStream) encountered an error \(aStream.streamError?.localizedDescription) with NSError object \(aStream.streamError) and stream's status is \(aStream.streamStatus.rawValue)")
 			closeConnection()
 			break
 		case NSStreamEvent.None:
-			MGLog("Stream status \(aStream.streamStatus)") // Who knows what is happening here.
-			MGDebugLog("Stream status \(aStream.streamStatus)") // Who knows what is happening here.
+			MGLog("Stream status \(aStream.streamStatus.rawValue)") // Who knows what is happening here.
+			MGDebugLog("Stream status \(aStream.streamStatus.rawValue)") // Who knows what is happening here.
 			assertionFailure("Debugging a None stream event.")
 			break
 		default:
 			break
 		}
 	}
-	
 	private func closeConnection()
 	{
 		MGDebugLog("An error occurred closing the connection.")
 		self.inputStream.delegate = nil
 		self.outputStream.delegate = nil
-		self.outputStream.removeFromRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
-		self.inputStream.removeFromRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
+		self.outputStream.removeFromRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+		self.inputStream.removeFromRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
 		self.outputStream.close()
 		self.inputStream.close()
 		self.ruler?.pendingInvites.removeElement(self)
-		if remotePeer == nil
+		if let remote = remotePeer
 		{
-			self.ruler?.startBrowsingForPeers()
+			do
+			{
+				try session?.rejectConnectionToPeer(remote)
+			}
+			catch
+			{
+				MGDebugLog("Failed to reject connection properly with error \(error)")
+			}
 		}
+		self.ruler?.startBrowsingForPeers()
 	}
 	private func sendSmallDataPacket(data: NSData)
 	{
@@ -609,7 +626,7 @@ extension MGNearbyConnectionResolver : NSStreamDelegate
 				else
 				{
 					MGDebugLog("Peer \(remote) declined the connection attempt.")
-					try session.rejectConnectionToPeer(remote)
+					closeConnection()
 				}
 			}
 			catch

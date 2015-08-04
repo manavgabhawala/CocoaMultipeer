@@ -65,13 +65,13 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 	public weak var delegate: MGSessionDelegate?
 	
 	/// An array of all peers that are currently connected to this session. (read-only)
-	public var connectedPeers: [MGPeerID] { return peers.map { $0.peer } }
+	public var connectedPeers: [MGPeerID] { return peers.filter { $0.state == .Connected }.map { $0.peer } }
 	
-	private var peers = [(peer: MGPeerID, state: MGSessionState, input: NSInputStream, output: NSOutputStream, writeLock: NSCondition)]()
+	/// An array of a tuple of all the values needed for a proper connection to a peer.
+	internal var peers = [(peer: MGPeerID, state: MGSessionState, input: NSInputStream, output: NSOutputStream, writeLock: NSCondition)]()
 	
-	// This property determines how much data is written/read at a time.
+	/// This property determines how much data is written/read at a time.
 	internal static let packetSize : Int = 255
-	
 	
 	///  Creates a Cocoa Multipeer session.
 	///
@@ -241,7 +241,8 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 	///  - Parameter peer: The peer whose state is wanted.
 	///  - Throws: A `MultipeerError.PeerNotFound` error if the peer doesn't exist in the list of peers returned by `connectedPeers`.
 	///  - Returns: The state of the peer. See `MGSessionState`
-	public func stateForPeer(peer: MGPeerID) throws -> MGSessionState
+	/*
+	internal func stateForPeer(peer: MGPeerID) throws -> MGSessionState
 	{
 		guard let index = peers.indexOf({ $0.peer == peer })
 		else
@@ -249,7 +250,7 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 			throw MultipeerError.PeerNotFound
 		}
 		return peers[index].state
-	}
+	}*/
 	
 	///  Disconnects the remote peer from the session. Usually, you would call this on the server and not the client. See `disconnect` for client side disconnects.
 	///
@@ -367,11 +368,13 @@ extension MGSession
 	}
 	private func lostPeer(peerIndex: Int)
 	{
-		guard peerIndex >= 0 && peers.count < 0
+		guard peerIndex >= 0 && peers.count > peerIndex
 		else
 		{
 			return
 		}
+		peers[peerIndex].input.removeFromRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+		peers[peerIndex].output.removeFromRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
 		peers[peerIndex].input.close()
 		peers[peerIndex].output.close()
 		peers[peerIndex].state = .NotConnected

@@ -97,8 +97,7 @@ import Foundation
 	override public func viewDidAppear(animated: Bool)
 	{
 		super.viewDidAppear(animated)
-		let vc = MGBrowserTableViewController(browser: browser, session: session)
-		vc.delegate = self
+		let vc = MGBrowserTableViewController(browser: browser, session: session, delegate: self)
 		pushViewController(vc, animated: true)
 	}
 }

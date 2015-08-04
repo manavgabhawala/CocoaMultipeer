@@ -31,10 +31,11 @@ protocol MGBrowserTableViewControllerDelegate : NSObjectProtocol
 	/// - Parameter session: The multipeer session into which the invited peers are connected.
 	/// - Returns: An initialized browser.
 	/// - Warning: If you want the browser view controller to manage the browsing process, the browser object must not be actively browsing, and its delegate must be nil.
-	internal init(browser: MGNearbyServiceBrowser, session: MGSession)
+	internal init(browser: MGNearbyServiceBrowser, session: MGSession, delegate: MGBrowserTableViewControllerDelegate)
 	{
 		self.browser = browser
 		self.session = session
+		self.delegate = delegate
 		super.init(style: .Grouped)
 		self.browser.delegate = self
 	}
@@ -77,16 +78,7 @@ protocol MGBrowserTableViewControllerDelegate : NSObjectProtocol
 		dispatch_async(dispatch_get_main_queue(), {
 			self.tableView.reloadSections(NSIndexSet(indexesInRange: NSRange(location: 0, length: 2)), withRowAnimation: .Automatic)
 		})
-		if self.session.connectedPeers.filter ({
-			do
-			{
-				return try self.session.stateForPeer($0) == .Connected
-			}
-			catch
-			{
-				return false
-			}
-		}).count >= self.delegate.minimumPeers
+		if self.session.connectedPeers.count >= self.delegate.minimumPeers
 		{
 			self.navigationItem.rightBarButtonItem?.enabled = true
 		}
@@ -122,7 +114,7 @@ extension MGBrowserTableViewController
 	}
 	internal override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int
 	{
-		return section == 0 ? session.connectedPeers.count : availablePeers.count
+		return section == 0 ? session.peers.count : availablePeers.count
 	}
 	internal override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell
 	{
@@ -130,22 +122,14 @@ extension MGBrowserTableViewController
 		if indexPath.section == 0
 		{
 			cell = UITableViewCell(style: UITableViewCellStyle.Value1, reuseIdentifier: "connected")
-			cell.textLabel!.text = session.connectedPeers[indexPath.row].displayName
-			do
-			{
-				cell.detailTextLabel!.text = try session.stateForPeer(session.connectedPeers[indexPath.row]).description
-			}
-			catch
-			{
-				MGLog(error)
-				MGDebugLog("An error while attempting to find a peer: \(error)")
-			}
+			cell.textLabel!.text = session.peers[indexPath.row].peer.displayName
+			cell.detailTextLabel!.text = session.peers[indexPath.row].state.description
 			cell.selectionStyle = .None
 		}
 		else
 		{
 			cell = UITableViewCell(style: UITableViewCellStyle.Default, reuseIdentifier: "available")
-			if indexPath.row < availablePeers.count
+			if availablePeers.count > indexPath.row
 			{
 				cell.textLabel!.text = availablePeers[indexPath.row].displayName
 			}
@@ -156,7 +140,7 @@ extension MGBrowserTableViewController
 	internal override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath)
 	{
 		tableView.cellForRowAtIndexPath(indexPath)!.setHighlighted(false, animated: true)
-		guard indexPath.section == 1 && delegate.maximumPeers > session.connectedPeers.count
+		guard indexPath.section == 1 && delegate.maximumPeers > session.peers.count
 		else { return }
 		dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
 			do
@@ -238,5 +222,9 @@ extension MGBrowserTableViewController : MGNearbyServiceBrowserDelegate
 			self.dismissViewControllerAnimated(true, completion: nil)
 		}))
 		presentViewController(alertController, animated: true, completion: nil)
+	}
+	internal func browserStoppedSearching(browser: MGNearbyServiceBrowser)
+	{
+//		availablePeers.removeAll()
 	}
 }
