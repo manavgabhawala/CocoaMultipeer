@@ -1,6 +1,6 @@
 # CocoaMultipeer
 
-[![Latest Release](https://img.shields.io/badge/release-0.0.1-beta-blue.svg)](https://github.com/manavgabhawala/CocoaMultipeer)
+[![Latest Release](https://img.shields.io/badge/release-0.0.1--beta-blue.svg)](https://github.com/manavgabhawala/CocoaMultipeer)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/manavgabhawala/CocoaMultipeer)
 [![License](https://img.shields.io/badge/license-Apache%20License-blue.svg)](https://github.com/manavgabhawala/CocoaMultipeer)
 [![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20OS%20X%20%7C%20watchOS-000000.svg)](https://github.com/manavgabhawala/CocoaMultipeer)
@@ -12,8 +12,10 @@ This repository is a peer to peer framework for OS X, iOS and watchOS 2 that pre
 With Apple introducing features like continuity and handoff, being able to stream data back and forth between devices would be a natural next step. Using airdrop like technology this allows you to send `NSData` instances back and forth between connected peers using `NSStream`s for output and input. This is easy to setup, literally 0 configuration and easy to send and recieve data. It is thread safe and never blocks the main thread by using callbacks to a delegate. It also includes a default UI for the interfaces so that its super easy to just plug and play and start sending your data. The best part about this is that it even supports peer to peer networks so data can be sent really fast instead of sending it over onto the internet using services like iCloud, Dropbox or even a web server. The high level of abstraction provides a great interface for any app developer.
 
 ## Installation
+**[Download Beta Frameworks](https://github.com/manavgabhawala/CocoaMultipeer/releases/download/v0.0.1-beta/CocoaMultipeer.zip)**
+
 This framework is now in beta most of the functionality that will be present in the first official release is now present in this beta. The framework will leave beta as soon as Xcode 7 is officially released. Cocoapods support will come with the first release.
-To test and try out the beta you can download all the frameworks from [here]().
+To test and try out the beta you can download all the frameworks from [here](https://github.com/manavgabhawala/CocoaMultipeer/releases/download/v0.0.1-beta/CocoaMultipeer.zip).
 After downloading the frameworks, drag the ones you want into your xcode project and make sure that the `Copy Items if needed` is checked and **no** targets are checked. Then, go into each target you want to add the framework in the xcode project file and under `General` -> `Embedded Binaries` click the plus and select the relevant framework. For instance for an iOS app choose the CocoaMultipeeriOS.framework. Doing this will ensure that the files are properly installed. Then finally, import it in the Swift or Objective C files you wish to as follows:
 
 ```swift
