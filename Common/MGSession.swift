@@ -65,7 +65,21 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 	public weak var delegate: MGSessionDelegate?
 	
 	/// An array of all peers that are currently connected to this session. (read-only)
-	public var connectedPeers: [MGPeerID] { return peers.filter { $0.state == .Connected }.map { $0.peer } }
+	public var connectedPeers: [MGPeerID]
+	{
+		var connectedPeers = [MGPeerID]()
+		connectedPeers.reserveCapacity(peers.count)
+		for peer in peers
+		{
+			guard peer.state == .Connected
+			else
+			{
+				continue
+			}
+			connectedPeers.append(peer.peer)
+		}
+		return connectedPeers
+	}
 	
 	/// An array of a tuple of all the values needed for a proper connection to a peer.
 	internal var peers = [(peer: MGPeerID, state: MGSessionState, input: NSInputStream, output: NSOutputStream, writeLock: NSCondition)]()
@@ -91,6 +105,7 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 	///  - Parameter data:    An object containing the message to send.
 	///  - Parameter peerIDs: An array of peer ID objects representing the peers that should receive the message.
 	///  - Throws: MultipeerError.NotConnected error if you are attempting to send data to a peer that is not connected. Try checking the status of the peer again, reestablishing the connection by allowing the user to reinvite the lost device.
+	///  - SeeAlso: `session:didRecieveData:fromPeer`
 	public func sendData(data: NSData, toPeers peerIDs: [MGPeerID]) throws
 	{
 		guard data.length > 0
@@ -235,22 +250,6 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 		}
 		lostPeer(index)
 	}
-	
-	///  Use this function to introspect a peer and get its state.
-	///
-	///  - Parameter peer: The peer whose state is wanted.
-	///  - Throws: A `MultipeerError.PeerNotFound` error if the peer doesn't exist in the list of peers returned by `connectedPeers`.
-	///  - Returns: The state of the peer. See `MGSessionState`
-	/*
-	internal func stateForPeer(peer: MGPeerID) throws -> MGSessionState
-	{
-		guard let index = peers.indexOf({ $0.peer == peer })
-		else
-		{
-			throw MultipeerError.PeerNotFound
-		}
-		return peers[index].state
-	}*/
 	
 	///  Disconnects the remote peer from the session. Usually, you would call this on the server and not the client. See `disconnect` for client side disconnects.
 	///

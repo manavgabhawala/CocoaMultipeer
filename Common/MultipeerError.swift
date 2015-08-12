@@ -12,13 +12,13 @@ import Foundation
 public enum MultipeerError : Int, ErrorType, Hashable, CustomStringConvertible
 {
     /// The peer sent wasn't recognized or found.
-	case PeerNotFound
+	case PeerNotFound = 0
 	
 	/// The attempt to connect to the peer failed. This means that the peer was lost between the `invitePeer` call and actually establishing the connection. 
-	case ConnectionAttemptFailed
+	case ConnectionAttemptFailed = 1
 	
 	///  Attempting to do something with a peer that isn't connected to the session.
-	case NotConnected
+	case NotConnected = 2
 	
 	public var description: String
 	{

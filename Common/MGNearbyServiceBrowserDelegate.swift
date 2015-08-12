@@ -8,9 +8,7 @@
 
 import Foundation
 
-
-/** The MGNearbyServiceBrowserDelegate protocol defines methods that a MGNearbyServiceBrowser object’s delegate can implement to handle browser-related and invitation events. Since all activity is asynchronous in nature, you cannot make any assumptions of the thread on which the delegate's methods will be called.
-*/
+/// The MGNearbyServiceBrowserDelegate protocol defines methods that a MGNearbyServiceBrowser object’s delegate can implement to handle browser-related and invitation events. Since all activity is asynchronous in nature, you cannot make any assumptions of the thread on which the delegate's methods will be called.
 @objc public protocol MGNearbyServiceBrowserDelegate
 {
 	/// The browser object that failed to start browsing.

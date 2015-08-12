@@ -24,6 +24,11 @@
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
+		<key>Watch.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>5</integer>
+		</dict>
 		<key>iOS.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -43,6 +48,11 @@
 			<true/>
 		</dict>
 		<key>828C622F1B551E3100E3F028</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>82B471771B75F27600E2783C</key>
 		<dict>
 			<key>primary</key>
 			<true/>
