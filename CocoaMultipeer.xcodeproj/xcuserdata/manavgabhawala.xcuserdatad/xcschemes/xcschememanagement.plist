@@ -24,6 +24,11 @@
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
+		<key>MultipeerCocoatvOS.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>6</integer>
+		</dict>
 		<key>Watch.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -43,6 +48,11 @@
 			<true/>
 		</dict>
 		<key>823F3EBC1B53F13500A7B7F1</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>8259FE101BAE90700045C134</key>
 		<dict>
 			<key>primary</key>
 			<true/>

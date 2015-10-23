@@ -23,7 +23,7 @@ callback -session:peer:didChangeState: will be called with
 MGSessionStateConnected state for the remote peer.
 
 Data messages can be sent to a connected peer with the -sendData:
-toPeers:withMode:error: method.
+toPeers: method.
 
 The receiver of data messages will receive a delegate callback
 -session:didReceiveData:fromPeer:.
@@ -65,17 +65,13 @@ delegate method should explicitly dispatch or schedule that work. Only small tas
 	public weak var delegate: MGSessionDelegate?
 	
 	/// An array of all peers that are currently connected to this session. (read-only)
+	/// - Warning: This goes through the entire list of peers and checks if they are connected or not so call this sparingly and if you are using it multiple times in a single scope it is recommended to cache it to a local variable.
 	public var connectedPeers: [MGPeerID]
 	{
 		var connectedPeers = [MGPeerID]()
 		connectedPeers.reserveCapacity(peers.count)
-		for peer in peers
+		for peer in peers where peer.state == .Connected
 		{
-			guard peer.state == .Connected
-			else
-			{
-				continue
-			}
 			connectedPeers.append(peer.peer)
 		}
 		return connectedPeers
